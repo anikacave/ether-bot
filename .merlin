@@ -2,3 +2,5 @@ B _build
 PKG ounit2
 PKG yojson
 PKG ANSITerminal
+PKG cohttp
+PKG lwt
