@@ -9,4 +9,4 @@ let convert_time_stamp str = ""
 (** [formatted_str_price_time ()] returns a cleanly formatted string of
     the form "Current Price: <price>\nAt Time: <time stamp>" (TBD), for
     printing to GUI*)
-let formatted_str_price_time un = ""
+let formatted_str_price_time un = "TODO"
