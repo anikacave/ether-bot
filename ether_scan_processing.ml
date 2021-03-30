@@ -1,4 +1,4 @@
-open Ether_scan_query
+
 (** *)
 let convert_cur_price str = float_of_string str
 
@@ -11,8 +11,9 @@ let format_date month day year =
             else if month = 9 then "October" else if month = 10 then "November"
             else if month = 11 then "December" else "invalid month" in
     let string_day = 
-        if day mod 10 = 1 then "st" else if day mod 10 = 2 then "nd" else if 
-            day mod 10 = 3 then "rd" else "th" in
+        if day mod 10 = 1 && day / 10 != 1 then "st" else if day mod 10 = 2 && 
+            day / 10 != 1 then "nd" else if day mod 10 = 3 && day / 10 != 1 
+            then "rd" else "th" in
         string_month ^ " " ^ string_of_int day ^ string_day ^ ", " ^ string_of_int year
 
 let format_time hour minute second =
@@ -29,10 +30,10 @@ let convert_time_stamp str =
     match record with
     |{tm_sec = sec ; tm_min = min ; tm_hour = hour ; tm_mday = day ; tm_mon = 
     month ; tm_year = year ; tm_wday = weekday ; tm_yday = dayofyear ; 
-    tm_isdst = isdaylightsaving} -> (format_time hour min sec) ^ 
+    tm_isdst = isdaylightsaving} -> (format_time hour min sec) ^ " on " ^
     (format_date month day (year + 1900))
     
-
+(**
 let get_price_time un = 
     let pair = ether_scan_query.get_cur_price un in
     match pair with 
@@ -48,3 +49,4 @@ let formatted_str_price_time un =
     match pair with
     | (price , time) -> "Current Price: $" ^ price ^ "\nAt Time" ^ (convert_time_stamp time);
     | _ -> "error"
+*)
