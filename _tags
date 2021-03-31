@@ -1,1 +1,1 @@
-true: package(ounit2),package(yojson),package(ANSITerminal),package(cohttp),package(lwt),package(cohttp-lwt-unix),thread
+true: package(ounit2),package(yojson),package(ANSITerminal),package(cohttp),package(lwt),package(csv),package(cohttp-lwt-unix),thread
