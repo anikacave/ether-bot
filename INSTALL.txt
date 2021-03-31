@@ -1,0 +1,15 @@
+Hello!
+
+To run our code, please first install:
+yojson
+ANSITerminal
+cohttp
+lwt
+
+Note yojson and ANSITerminal are part of the standard 3110 ocaml switch. 
+We installed cohttp and lwt by running this command in terminal:
+$ opam install cohttp-lwt-unix cohttp-async
+
+Once you've got all our dependencies, just type
+$ make run
+And follow our UI instructions!
