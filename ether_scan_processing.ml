@@ -74,7 +74,7 @@ let convert_time_stamp str =
     describing the date at which the Ether price was queried, in
     [hh:mm:ss day month year]. Errors: TBD *)
 let get_price_time un =
-  let pair = ether_scan_query.get_cur_price un in
+  let pair = get_cur_price un in
   match pair with
   | price, time -> (convert_cur_price price, convert_time_stamp time)
   | _ -> (0.0, "error")
@@ -83,7 +83,7 @@ let get_price_time un =
     the form "Current Price: <price>\nAt Time: <time stamp>" (TBD), for
     printing to GUI*)
 let formatted_str_price_time un =
-  let pair = ether_scan_query.get_cur_price un in
+  let pair = get_cur_price un in
   match pair with
   | price, time ->
       "Current Price: $" ^ price ^ "\nAt Time" ^ convert_time_stamp time
