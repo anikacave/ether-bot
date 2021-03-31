@@ -16,7 +16,7 @@ test:
 	$(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST) -runner sequential
 
 run:
-	$(OCAMLBUILD) -tag 'debug' $(MAIN) && OCAMLRUNPARAM=b ./$(MAIN)
+	$(OCAMLBUILD) $(MAIN) && OCAMLRUNPARAM=b ./$(MAIN)
 
 zip:
 	zip bot.zip *.ml* *.json *.sh _tags .merlin .ocamlformat .ocamlinit  Makefile	
