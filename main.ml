@@ -57,7 +57,7 @@ let reformat_user_timestamp s =
     | _ ->
         raise (Malformed_date "Input date not in form <[m]m/[d]d/yyyy>")
   with Invalid_date s ->
-    raise (Malformed_date "Incorrectly formated date: " ^ s ^ "\n")
+    raise (Malformed_date ("Incorrectly formated date: " ^ s ^ "\n"))
 
 (** [recieve_cmds ()] is a REPL that displays the possible commands,
     reroutes the user to another method, and quits upon "q"*)

@@ -12,7 +12,7 @@ let convert_cur_price str = float_of_string str
     and year (1970-inf.) *)
 let format_date month day year =
   if year < 1900 || year > 2100 then
-    raise (Invalid_date ("Input year: " ^ string_of_int year))
+    raise (Invalid_date "Invalid input year")
   else
     let string_month =
       if month = 0 then "January"
@@ -27,11 +27,11 @@ let format_date month day year =
       else if month = 9 then "October"
       else if month = 10 then "November"
       else if month = 11 then "December"
-      else raise (Invalid_date ("Input month: " ^ string_of_int month))
+      else raise (Invalid_date "Invalid input month")
     in
     let string_day =
       if day > 31 || day < 0 then
-        raise (Invalid_date ("Input day: " ^ string_of_int day))
+        raise (Invalid_date "Invalid input day")
       else if day mod 10 = 1 && day / 10 != 1 then "st"
       else if day mod 10 = 2 && day / 10 != 1 then "nd"
       else if day mod 10 = 3 && day / 10 != 1 then "rd"
