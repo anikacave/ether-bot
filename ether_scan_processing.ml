@@ -73,7 +73,7 @@ let convert_time_stamp str =
    tm_yday = dayofyear;
    tm_isdst = isdaylightsaving;
   } ->
-      format_time hour min sec
+      format_time ((hour + 20) mod 24) min sec
       ^ " on "
       ^ format_date month day (year + 1900)
 

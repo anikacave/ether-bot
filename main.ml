@@ -7,9 +7,27 @@ open Unix
    Ether_scan_query *)
 exception File_not_found
 
+exception Est_price_exc of string
+
 exception Malformed_date of string
 
 let filename = "ether_data.csv"
+
+let init_price = fst (get_price_time ())
+
+let flt_how_much_would_have_made () =
+  fst (get_price_time ()) -. init_price
+
+let str_how_much_would_have_made () =
+  let str = string_of_float (flt_how_much_would_have_made ()) in
+  "If you had invested in Ether at the start of the session, you would \
+   have made: $" ^ str
+
+(*let s = Stringext.full_split (string_of_float flt) '.' in match s with
+  | [ dollars; "."; cents ] -> "if you had bought Ether at the start of
+  the session, you would \ have made: " ^ dollars ^ "." ^ String.sub
+  cents 0 2 | _ -> raise (Est_price_exc "could not compute how much you
+  would have made")*)
 
 let print_fmt str =
   ANSITerminal.(print_string [ magenta; on_white ] str)
@@ -47,9 +65,9 @@ let print_cmds () =
 (** [open_data_csv] opens [ether_data.csv] if it exists, else it prints
     \"Can not present data\""*)
 let open_data_csv () =
-  if Sys.file_exists "ether_data.csv" then (
-    Unix.system "open -a textedit ether_data.csv";
-    ())
+  if Sys.file_exists filename then (
+    Unix.system ("open -a textedit " ^ filename);
+    () )
   else print_fmt "Can not present data\n"
 
 (** [reformat_user_timestamp s] is the csv-friendly timestamp, derived
@@ -65,58 +83,65 @@ let reformat_user_timestamp s =
     | _ ->
         raise (Malformed_date "Input date not in form <[m]m/[d]d/yyyy>")
   with Invalid_date s ->
-    raise (Malformed_date ("Incorrectly formated date: " ^ s ^ "\n"))
+    raise (Malformed_date ("Incorrectly formated date: " ^ s))
 
 (** [recieve_cmds ()] is a REPL that displays the possible commands,
     reroutes the user to another method, and quits upon "q"*)
 let rec recieve_cmds () =
   print_string "> ";
-  match
-    List.filter
-      (fun s -> s <> " ")
-      (Stringext.full_split (read_line ()) ' ')
-  with
-  | exception End_of_file -> ()
-  | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
-      print_fmt "Quitting...\n"
-  | [ "1" ] | [ "current"; "price" ] ->
-      print_fmt ("updated file: " ^ update_create_csv () ^ "\n");
-      print_fmt (formatted_str_price_time () ^ "\n") |> recieve_cmds
-  | [ "2" ] | [ "open"; "data" ] -> open_data_csv () |> recieve_cmds
-  | [ "3" ] | [ "price"; "high"; "today" ] ->
-      print_fmt "command not currently available\n";
-      recieve_cmds ()
-  | [ "4" ] | [ "price"; "low"; "today" ] ->
-      print_fmt "command not currently available\n";
-      recieve_cmds ()
-  | [ "5"; s ] | [ "price"; "high"; s ] -> (
-      try
-        let time = reformat_user_timestamp s in
-        match time with
-        | t ->
-            print_fmt
-              ("You requested the high price from: " ^ t
-             ^ ".\nCommand not currently available\n");
-            recieve_cmds ()
-      with Malformed_date s ->
-        print_fmt s;
-        recieve_cmds ())
-  | [ "6"; s ] | [ "price"; "low"; s ] -> (
-      try
-        let time = reformat_user_timestamp s in
-        match time with
-        | t ->
-            print_fmt
-              ("You requested the low price from: " ^ t
-             ^ ".\nCommand not currently available\n");
-            recieve_cmds ()
-      with Malformed_date s ->
-        print_fmt s;
-        recieve_cmds ())
-  | _ ->
-      print_fmt
-        "I could not understand your choice of command. Please try again\n";
-      recieve_cmds ()
+  try
+    match
+      List.filter
+        (fun s -> s <> " ")
+        (Stringext.full_split (read_line ()) ' ')
+    with
+    | exception End_of_file -> ()
+    | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
+        ( try print_fmt (str_how_much_would_have_made () ^ "\n")
+          with Est_price_exc s -> print_fmt (s ^ "\n") );
+        print_fmt "Quitting...\n"
+    | [ "1" ] | [ "current"; "price" ] ->
+        print_fmt ("updated file: " ^ update_create_csv () ^ "\n");
+        print_fmt (formatted_str_price_time () ^ "\n") |> recieve_cmds
+    | [ "2" ] | [ "open"; "data" ] -> open_data_csv () |> recieve_cmds
+    | [ "3" ] | [ "price"; "high"; "today" ] ->
+        print_fmt "command not currently available\n";
+        recieve_cmds ()
+    | [ "4" ] | [ "price"; "low"; "today" ] ->
+        print_fmt "command not currently available\n";
+        recieve_cmds ()
+    | [ "5"; s ] | [ "price"; "high"; s ] -> (
+        try
+          let time = reformat_user_timestamp s in
+          match time with
+          | t ->
+              print_fmt
+                ( "You requested the high price from: " ^ t
+                ^ ".\nCommand not currently available\n" );
+              recieve_cmds ()
+        with Malformed_date s ->
+          print_fmt (s ^ "\n");
+          recieve_cmds () )
+    | [ "6"; s ] | [ "price"; "low"; s ] -> (
+        try
+          let time = reformat_user_timestamp s in
+          match time with
+          | t ->
+              print_fmt
+                ( "You requested the low price from: " ^ t
+                ^ ".\nCommand not currently available\n" );
+              recieve_cmds ()
+        with Malformed_date s ->
+          print_fmt (s ^ "\n");
+          recieve_cmds () )
+    | _ ->
+        print_fmt
+          "I could not understand your choice of command. Please try \
+           again\n";
+        recieve_cmds ()
+  with Query_Failed s ->
+    print_fmt (s ^ "\n");
+    recieve_cmds ()
 
 (** [yn_start ()] prompts user if they mean to enter the bot, calls
     [prompt_cmds ()] if "Y" and quits if "N". Repeats until desired
