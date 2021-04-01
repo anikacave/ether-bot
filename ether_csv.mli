@@ -21,4 +21,4 @@ val from_csv : float -> filename -> string
     file. Writes to a seperate file than the original one specified to
     avoid deleting all data from a csv file returns the name/path of the
     new file that will include the updated csv*)
-val safe_update_csv : filename -> string
+val safe_update_csv : filename -> filename
