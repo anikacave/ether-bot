@@ -5,3 +5,4 @@ PKG ANSITerminal
 PKG cohttp
 PKG lwt
 PKG cohttp-lwt-unix
+PKG csv

@@ -1,5 +1,8 @@
 open Ether_scan_query
 
+(** exception*)
+exception Invalid_date of string
+
 (** [convert_cur_price ()] is the floating point number equivalent of
     the string input*)
 let convert_cur_price str = float_of_string str
@@ -8,29 +11,34 @@ let convert_cur_price str = float_of_string str
     day(st/nd/rd/th), year" from three integers month (0-11) day (0-31)
     and year (1970-inf.) *)
 let format_date month day year =
-  let string_month =
-    if month = 0 then "January"
-    else if month = 1 then "Feburary"
-    else if month = 2 then "March"
-    else if month = 3 then "April"
-    else if month = 4 then "May"
-    else if month = 5 then "June"
-    else if month = 6 then "July"
-    else if month = 7 then "August"
-    else if month = 8 then "September"
-    else if month = 9 then "October"
-    else if month = 10 then "November"
-    else if month = 11 then "December"
-    else "invalid month"
-  in
-  let string_day =
-    if day mod 10 = 1 && day / 10 != 1 then "st"
-    else if day mod 10 = 2 && day / 10 != 1 then "nd"
-    else if day mod 10 = 3 && day / 10 != 1 then "rd"
-    else "th"
-  in
-  string_month ^ " " ^ string_of_int day ^ string_day ^ " "
-  ^ string_of_int year
+  if year < 1900 || year > 2100 then
+    raise (Invalid_date "Invalid input year")
+  else
+    let string_month =
+      if month = 0 then "January"
+      else if month = 1 then "Feburary"
+      else if month = 2 then "March"
+      else if month = 3 then "April"
+      else if month = 4 then "May"
+      else if month = 5 then "June"
+      else if month = 6 then "July"
+      else if month = 7 then "August"
+      else if month = 8 then "September"
+      else if month = 9 then "October"
+      else if month = 10 then "November"
+      else if month = 11 then "December"
+      else raise (Invalid_date "Invalid input month")
+    in
+    let string_day =
+      if day > 31 || day < 0 then
+        raise (Invalid_date "Invalid input day")
+      else if day mod 10 = 1 && day / 10 != 1 then "st"
+      else if day mod 10 = 2 && day / 10 != 1 then "nd"
+      else if day mod 10 = 3 && day / 10 != 1 then "rd"
+      else "th"
+    in
+    string_month ^ " " ^ string_of_int day ^ string_day ^ " "
+    ^ string_of_int year
 
 (** [format_time()] returns a readable string in the form "hh:mm:ss"
     from three integers 0-59 h,m,s *)
@@ -65,7 +73,7 @@ let convert_time_stamp str =
    tm_yday = dayofyear;
    tm_isdst = isdaylightsaving;
   } ->
-      format_time hour min sec
+      format_time ((hour + 20) mod 24) min sec
       ^ " on "
       ^ format_date month day (year + 1900)
 
@@ -91,10 +99,10 @@ let formatted_str_price_time un =
     ["epoch_time, price"]*)
 let csv_bot_price_time un =
   let pair = get_cur_price un in
-  match pair with price, time -> time ^ "," ^ price
+  match pair with price, time -> time ^ ", " ^ price
 
 (** [csv_readable_price_time ()] returns a CSV-friendly string of the
-    form ["hh:mm:ss monday day year, price"]*)
+    form ["hh:mm:ss on month day year, price"]*)
 let csv_readable_price_time un =
   let pair = get_price_time un in
-  match pair with price, time -> time ^ "," ^ string_of_float price
+  match pair with price, time -> time ^ ", " ^ string_of_float price
