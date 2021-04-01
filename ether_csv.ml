@@ -61,7 +61,19 @@ let update_file_name (file : filename) =
 
 (* [from_csv time] is the price of the ethereum at given [time]. If no
    such entry exists, raises (TBD) *)
-let from_csv (flt : float) (file : filename) = "TODO"
+let from_csv (flt : float) (file : filename) =
+  let input_stream = open_in file in
+  let rec scan un =
+    match
+      try Some (input_line input_stream) with End_of_file -> None
+    with
+    | None -> "TODO raise exception"
+    | Some h ->
+        let vals = String.split_on_char ',' h in
+        if Float.of_string (List.nth vals 0) = flt then List.nth vals 1
+        else scan ()
+  in
+  scan ()
 
 (* [update_csv ()] appends the current data to the a specified csv file.
    Writes to a seperate file than the original one specified to avoid
