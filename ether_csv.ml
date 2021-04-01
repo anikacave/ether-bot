@@ -17,11 +17,11 @@ let is_valid_csv_row (row : string) =
   let elems = String.split_on_char ',' row in
   List.length elems = 2
 
+(* NOTE: 2 csvs --> new csv functions to be used*)
+
 (** Makes a formatted row of the csv file by calling functions from
     ether_scan_processing and converting into comma seperated values *)
-let make_csv_row un =
-  let price, time = get_price_time () in
-  string_of_float price ^ "," ^ time ^ "\n"
+let make_csv_row un = csv_bot_price_time () ^ "\n"
 
 (* Prints to CSV output channel if header is marked as true, then a
    header will be appended to the beginning of the channel otherwise it
