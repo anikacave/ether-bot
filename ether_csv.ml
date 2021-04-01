@@ -4,11 +4,20 @@ open Csv
 (* Filename type *)
 type filename = string
 
-(* Checks if a row being appended/added to a CSV file is a valid row
-   else will throw a TBD error *)
-let is_valid_csv_row (row : string) = true
+(* TODO price will be from the get_price_time will ahve to format that *)
+let row_header = "number, formatted date, formatted time, price"
 
-(** [create_csv ()] *)
+(* Checks if a row being appended/added to a CSV file is a valid row
+   else will throw a TBD error -- also understood that this is terrible
+   code right now but this will be updated to be a much more in-depth
+   check of whether or not a csv row is valid*)
+let is_valid_csv_row (row : string) =
+  let elems = String.split_on_char ',' row in
+  if List.length elems = 4 then false else false
+
+(** [create_csv ()] creates csv @ given filename (will be from current
+    data availible and should be only one line long to include the most
+    current information) *)
 let create_csv (file : filename) = ()
 
 (** [from_csv time] is the [formatted_str_price_time] of the data
