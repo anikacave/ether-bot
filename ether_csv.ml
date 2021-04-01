@@ -41,10 +41,11 @@ let create_csv (file : filename) =
 (* Feeds information from one file to an output stream to copy the
    contents of a file into another *)
 let rec copy_paste input_stream output_stream =
-  let read = input_line input_stream in
-  match read with
-  | "" -> flush output_stream
-  | h ->
+  match
+    try Some (input_line input_stream) with End_of_file -> None
+  with
+  | None -> flush output_stream
+  | Some h ->
       output_string output_stream (h ^ "\n");
       flush output_stream;
       copy_paste input_stream output_stream
@@ -64,8 +65,10 @@ let from_csv (flt : float) (file : filename) = "TODO"
 
 (* [update_csv ()] appends the current data to the a specified csv file.
    Writes to a seperate file than the original one specified to avoid
-   deleting all data from a csv file*)
+   deleting all data from a csv file TODO return the name of the file
+   that was written to*)
 let safe_update_csv file =
   let input_stream = open_in file in
   let output_stream = open_out (update_file_name file) in
-  copy_paste input_stream output_stream
+  copy_paste input_stream output_stream;
+  csv_line output_stream false
