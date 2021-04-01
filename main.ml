@@ -7,28 +7,31 @@ open Unix
    Ether_scan_query *)
 exception File_not_found
 
+(** An exception that may be raised when estimating how much you would
+    have made*)
 exception Est_price_exc of string
 
+(** An exception when the user's input date is not of the form
+    <mm/dd/yyyy>*)
 exception Malformed_date of string
 
 let filename = "ether_data.csv"
 
+(* The initial price of Ether at the start of the session*)
 let init_price = fst (get_price_time ())
 
+(* Subtracts initial price from current price
+   ([flt_how_much_would_have_made ()] is called upon "quit")*)
 let flt_how_much_would_have_made () =
   fst (get_price_time ()) -. init_price
 
+(* String to be printed of above method*)
 let str_how_much_would_have_made () =
   let str = string_of_float (flt_how_much_would_have_made ()) in
   "If you had invested in Ether at the start of the session, you would \
    have made: $" ^ str
 
-(*let s = Stringext.full_split (string_of_float flt) '.' in match s with
-  | [ dollars; "."; cents ] -> "if you had bought Ether at the start of
-  the session, you would \ have made: " ^ dollars ^ "." ^ String.sub
-  cents 0 2 | _ -> raise (Est_price_exc "could not compute how much you
-  would have made")*)
-
+(* ANSITerminal formatting*)
 let print_fmt str =
   ANSITerminal.(print_string [ magenta; on_white ] str)
 
@@ -97,7 +100,9 @@ let rec recieve_cmds () =
     with
     | exception End_of_file -> ()
     | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
-        ( try print_fmt (str_how_much_would_have_made () ^ "\n")
+        ( try
+            let str = str_how_much_would_have_made () in
+            print_fmt (str ^ "\n")
           with Est_price_exc s -> print_fmt (s ^ "\n") );
         print_fmt "Quitting...\n"
     | [ "1" ] | [ "current"; "price" ] ->

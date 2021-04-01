@@ -6,13 +6,21 @@ ANSITerminal
 cohttp
 lwt
 cohttp-lwt-unix
+csv
 
 Note: Some of our UI functionalities require a Unix machine.
 
-Note yojson and ANSITerminal are part of the standard 3110 ocaml switch. 
+Note yojson, ANSITerminal, and csv are part of the standard 3110 ocaml switch. 
 We installed cohttp and lwt by running this command in terminal:
 $ opam install cohttp-lwt-unix cohttp-async
+(From https://github.com/mirage/ocaml-cohttp)
+
 
 Once you've got all our dependencies, just type
 $ make run
-And follow our UI instructions!
+
+Note: you might need to do make build, delete "main.byte", and do make run again... or at least we had to do that a few times
+
+And follow our UI instructions! (Yes -> current price -> ....)
+
+If you would like to see some cool functionality, wait 1-2 minutes between "current price" and "quit".
