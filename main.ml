@@ -7,6 +7,8 @@ open Unix
    Ether_scan_query *)
 exception File_not_found
 
+exception Malformed_date of string
+
 let print_fmt str =
   ANSITerminal.(print_string [ magenta; on_white ] str)
 
@@ -15,16 +17,24 @@ let print_cmds () =
   ANSITerminal.(erase Screen);
   ANSITerminal.set_cursor 1 1;
   print_fmt "COMMANDS:\n";
+  print_fmt "[0] - [quit]                             : quit program\n";
+
   print_fmt
-    "[current price]       : get the current USD price of Ether\n";
+    "[1] - [current price]                    : get the current USD \
+     price of Ether\n";
   print_fmt
-    "[open data]           : opens the ether_log.csv file in your \
-     system's default application\n";
-  print_fmt "[price high mm/dd/yy] : Ether high from <mm/dd/yy>\n";
-  print_fmt "[price low mm/dd/yy   : Ether low from <mm/dd/yy>\n";
-  print_fmt "[price high today]    : Ether high from today\n";
-  print_fmt "[price low today]     : Ether low from today\n";
-  print_fmt "[quit]                : quit program\n"
+    "[2] - [open data]                        : opens the \
+     ether_log.csv file in your system's default application\n";
+  print_fmt
+    "[3] - [price high today]                 : Ether high today\n";
+  print_fmt
+    "[4] - [price low today]                  : Ether low from today\n";
+  print_fmt
+    "[5 <mm/dd/yyyy>] - [price high mm/dd/yy]   : Ether low from \
+     <mm/dd/yy>\n";
+  print_fmt
+    "[6 <mm/dd/yyyy>] - [price low mm/dd/yy]    : Ether high from \
+     <mm/dd/yy>\n"
 
 (** [open_data_csv] opens [ether_data.csv] if it exists, else it prints
     \"Can not present data\""*)
@@ -35,45 +45,56 @@ let open_data_csv () =
   else print_fmt "Can not present data\n"
 
 (** [reformat_user_timestamp s] is the csv-friendly timestamp, derived
-    from input timestamp s*)
-let reformat_user_timestamp s = s
+    from input timestamp s. If s is not in the format <mm/dd/yyyy>,
+    raises [Malformed_date] exception*)
+let reformat_user_timestamp s =
+  match Stringext.full_split s '/' with
+  | [ m; "/"; d; "/"; y ] -> s
+  | _ -> raise (Malformed_date "Input date not in form <mm/dd/yyyy>")
 
 (** [recieve_cmds ()] is a REPL that displays the possible commands,
     reroutes the user to another method, and quits upon "q"*)
 let rec recieve_cmds () =
   print_string "> ";
-  match read_line () with
+  match
+    List.filter
+      (fun s -> s <> " ")
+      (Stringext.full_split (read_line ()) ' ')
+  with
   | exception End_of_file -> ()
-  | "q" | "Q" | " q" | " Q" | "quit" | " Quit" | " quit" | "Quit" ->
+  | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
       print_fmt "Quitting...\n"
-  | "current price" ->
+  | [ "1" ] | [ "current"; "price" ] ->
       print_fmt (formatted_str_price_time () ^ "\n") |> recieve_cmds
-  | "open data" -> open_data_csv () |> recieve_cmds
-  | s -> (
-      match
-        List.filter (fun s -> s <> " ") (Stringext.full_split s ' ')
-      with
-      | [ "price"; "high"; "today" ] ->
-          print_fmt "command not currently available\n";
-          recieve_cmds ()
-      | [ "price"; "low"; "today" ] ->
-          print_fmt "command not currently available\n";
-          recieve_cmds ()
-      | "price" :: "high" :: s -> (
-          match reformat_user_timestamp s with
-          | _ ->
-              print_fmt "command not currently available\n";
-              recieve_cmds () )
-      | "price" :: "low" :: s -> (
-          match reformat_user_timestamp s with
-          | _ ->
-              print_fmt "command not currently available\n";
-              recieve_cmds () )
-      | _ ->
-          print_fmt
-            "I could not understand your choice of command. Please try \
-             again\n";
-          recieve_cmds () )
+  | [ "2" ] | [ "open"; "data" ] -> open_data_csv () |> recieve_cmds
+  | [ "3" ] | [ "price"; "high"; "today" ] ->
+      print_fmt "command not currently available\n";
+      recieve_cmds ()
+  | [ "4" ] | [ "price"; "low"; "today" ] ->
+      print_fmt "command not currently available\n";
+      recieve_cmds ()
+  | [ "5"; s ] | [ "price"; "high"; s ] -> (
+      try
+        match reformat_user_timestamp s with
+        | _ ->
+            print_fmt "command not currently available\n";
+            recieve_cmds ()
+      with Malformed_date s ->
+        print_fmt "Please input date in the format <mm/dd/yyyy>\n";
+        recieve_cmds () )
+  | [ "6"; s ] | [ "price"; "low"; s ] -> (
+      try
+        match reformat_user_timestamp s with
+        | _ ->
+            print_fmt "command not currently available\n";
+            recieve_cmds ()
+      with Malformed_date s ->
+        print_fmt "Please input date in the format <mm/dd/yyyy>\n";
+        recieve_cmds () )
+  | _ ->
+      print_fmt
+        "I could not understand your choice of command. Please try again\n";
+      recieve_cmds ()
 
 (** [yn_start ()] prompts user if they mean to enter the bot, calls
     [prompt_cmds ()] if "Y" and quits if "N". Repeats until desired
