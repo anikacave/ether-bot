@@ -1,8 +1,9 @@
 (** CS 3110 Spring 2021 Final Project
 
-    @authors (ANIKA CAVE) (ERIC SUN) (KYRA GUNLUK) Alma Thaler (at564) *)
+    @authors (ANIKA CAVE) (ERIC SUN), Kyra Gunluk (kg556), Alma Thaler
+    (at564) *)
 
-(************************************************************ 
+(**********************************************s************** 
 
    Academic Integrity Statement
 
