@@ -49,7 +49,7 @@ let print_cmds () =
 let open_data_csv () =
   if Sys.file_exists "ether_data.csv" then (
     Unix.system "open -a textedit ether_data.csv";
-    () )
+    ())
   else print_fmt "Can not present data\n"
 
 (** [reformat_user_timestamp s] is the csv-friendly timestamp, derived
@@ -95,24 +95,24 @@ let rec recieve_cmds () =
         match time with
         | t ->
             print_fmt
-              ( "You requested the high price from: " ^ t
-              ^ ".\nCommand not currently available\n" );
+              ("You requested the high price from: " ^ t
+             ^ ".\nCommand not currently available\n");
             recieve_cmds ()
       with Malformed_date s ->
         print_fmt s;
-        recieve_cmds () )
+        recieve_cmds ())
   | [ "6"; s ] | [ "price"; "low"; s ] -> (
       try
         let time = reformat_user_timestamp s in
         match time with
         | t ->
             print_fmt
-              ( "You requested the low price from: " ^ t
-              ^ ".\nCommand not currently available\n" );
+              ("You requested the low price from: " ^ t
+             ^ ".\nCommand not currently available\n");
             recieve_cmds ()
       with Malformed_date s ->
         print_fmt s;
-        recieve_cmds () )
+        recieve_cmds ())
   | _ ->
       print_fmt
         "I could not understand your choice of command. Please try again\n";
