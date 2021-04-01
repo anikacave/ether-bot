@@ -32,7 +32,7 @@ let csv_line channel header =
   in
   output_string channel bytes2
 
-(** [create_csv ()] creates csv @ given filename (will be from current
+(** [create_csv file] creates csv @ given filename (will be from current
     data availible and should be only one line long to include the most
     current information) *)
 let create_csv (file : filename) =
@@ -61,8 +61,8 @@ let update_file_name (file : filename) =
     List.nth elems 0 ^ "*." ^ List.nth elems 1
   else raise InvalidFileExtensionFormat
 
-(* [from_csv time] is the price of the ethereum at given [time]. If no
-   such entry exists, raises TimeStampNotFound *)
+(* [from_csv time file] is the price of the ethereum at given [time]. If
+   no such entry exists, raises TimeStampNotFound *)
 let from_csv (flt : float) (file : filename) =
   let input_stream = open_in file in
   let rec scan un =
@@ -82,11 +82,11 @@ let from_csv (flt : float) (file : filename) =
   in
   scan ()
 
-(* [update_csv ()] appends the current data to the a specified csv file.
-   Writes to a seperate file than the original one specified to avoid
-   deleting all data from a csv file. returns the name of the new file
-   that was written to*)
-let safe_update_csv file =
+(* [update_csv filename] appends the current data to the a specified csv
+   file. Writes to a seperate file than the original one specified to
+   avoid deleting all data from a csv file. returns the name of the new
+   file that was written to*)
+let safe_update_csv (file : filename) =
   let input_stream = open_in file in
   let new_file_name = update_file_name file in
   let output_stream = open_out new_file_name in
