@@ -12,6 +12,7 @@ exception Query_Failed of string
     describing the current Ethereum price in USD, and b is the string of
     an integer representing the current Epoch time. Errors: TBD *)
 let get_cur_price () =   
+    try 
     let body = 
         Uri.of_string @@ "http://api.etherscan.io/api?"
         ^ "module=stats&action=ethprice"
@@ -37,4 +38,7 @@ let get_cur_price () =
         |> snd 
         |> to_assoc in
         (List.nth lst 2 |> snd |> to_string , List.nth lst 3 |> snd |> to_string)
+    with 
+    | Failure a when a = "resolution failed: name resolution failed" 
+        -> raise (Query_Failed "Something went wrong. Check your internet connection.")
 
