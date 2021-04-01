@@ -1,3 +1,6 @@
+(** exception *)
+exception Invalid_date of string
+
 (** [convert_cur_price ()] is the floating point number equivalent of
     the string input*)
 val convert_cur_price : string -> float

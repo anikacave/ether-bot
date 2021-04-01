@@ -45,12 +45,19 @@ let open_data_csv () =
   else print_fmt "Can not present data\n"
 
 (** [reformat_user_timestamp s] is the csv-friendly timestamp, derived
-    from input timestamp s. If s is not in the format <mm/dd/yyyy>,
+    from input timestamp s. If s is not in the format <[m]m/[d]d/yyyy>,
     raises [Malformed_date] exception*)
 let reformat_user_timestamp s =
-  match Stringext.full_split s '/' with
-  | [ m; "/"; d; "/"; y ] -> s
-  | _ -> raise (Malformed_date "Input date not in form <mm/dd/yyyy>")
+  try
+    match Stringext.full_split s '/' with
+    | [ m; "/"; d; "/"; y ] ->
+        format_date
+          (int_of_string m - 1)
+          (int_of_string d) (int_of_string y)
+    | _ ->
+        raise (Malformed_date "Input date not in form <[m]m/[d]d/yyyy>")
+  with Invalid_date s ->
+    raise (Malformed_date ("Incorrectly formated date: " ^ s ^ "\n"))
 
 (** [recieve_cmds ()] is a REPL that displays the possible commands,
     reroutes the user to another method, and quits upon "q"*)
@@ -75,21 +82,27 @@ let rec recieve_cmds () =
       recieve_cmds ()
   | [ "5"; s ] | [ "price"; "high"; s ] -> (
       try
-        match reformat_user_timestamp s with
-        | _ ->
-            print_fmt "command not currently available\n";
+        let time = reformat_user_timestamp s in
+        match time with
+        | t ->
+            print_fmt
+              ( "You requested the high price from:" ^ t
+              ^ ".\nCommand not currently available\n" );
             recieve_cmds ()
       with Malformed_date s ->
-        print_fmt "Please input date in the format <mm/dd/yyyy>\n";
+        print_fmt s;
         recieve_cmds () )
   | [ "6"; s ] | [ "price"; "low"; s ] -> (
       try
-        match reformat_user_timestamp s with
-        | _ ->
-            print_fmt "command not currently available\n";
+        let time = reformat_user_timestamp s in
+        match time with
+        | t ->
+            print_fmt
+              ( "You requested the low price from:" ^ t
+              ^ ".\nCommand not currently available\n" );
             recieve_cmds ()
       with Malformed_date s ->
-        print_fmt "Please input date in the format <mm/dd/yyyy>\n";
+        print_fmt s;
         recieve_cmds () )
   | _ ->
       print_fmt
@@ -121,5 +134,5 @@ let main () =
   print_endline "";
   yn_start ()
 
-(* Execute the game engine. *)
+(* Execute the ui. *)
 let () = main ()
