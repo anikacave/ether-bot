@@ -3,4 +3,6 @@
     an integer representing the current Epoch time. Errors: TBD *)
 val get_cur_price : unit -> string * string
 
-(* Exception esp_exception t *)
+(* if a query to etherscan.io fails, Query_Failed will be raised 
+    with details about what went wrong*)
+exception Query_Failed of string

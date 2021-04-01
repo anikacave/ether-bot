@@ -29,7 +29,7 @@ let format_date month day year =
     else if day mod 10 = 3 && day / 10 != 1 then "rd"
     else "th"
   in
-  string_month ^ " " ^ string_of_int day ^ string_day ^ ", "
+  string_month ^ " " ^ string_of_int day ^ string_day ^ " "
   ^ string_of_int year
 
 (** [format_time()] returns a readable string in the form "hh:mm:ss"
@@ -77,14 +77,24 @@ let get_price_time un =
   let pair = get_cur_price un in
   match pair with
   | price, time -> (convert_cur_price price, convert_time_stamp time)
-  | _ -> (0.0, "error")
 
 (** [formatted_str_price_time ()] returns a cleanly formatted string of
     the form "Current Price: <price>\nAt Time: <time stamp>" (TBD), for
-    printing to GUI*)
+    printing to UI*)
 let formatted_str_price_time un =
-  let pair = get_cur_price un in
+  let pair = get_price_time un in
   match pair with
   | price, time ->
-      "Current Price: $" ^ price ^ "\nAt Time" ^ convert_time_stamp time
-  | _ -> "error"
+      "Current Price: $" ^ string_of_float price ^ "\nAt Time " ^ time
+
+(** [csv_bot_price_time ()] returns a CSV-friendly string of the form
+    ["epoch_time, price"]*)
+let csv_bot_price_time un =
+  let pair = get_cur_price un in
+  match pair with price, time -> time ^ "," ^ price
+
+(** [csv_readable_price_time ()] returns a CSV-friendly string of the
+    form ["hh:mm:ss monday day year, price"]*)
+let csv_readable_price_time un =
+  let pair = get_price_time un in
+  match pair with price, time -> time ^ "," ^ string_of_float price

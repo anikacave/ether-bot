@@ -3,7 +3,7 @@
 val convert_cur_price : string -> float
 
 (** [format_date()] returns a readable string in the form "Month_name
-    day(st/nd/rd/th), year" from three integers month (0-11) day (0-31)
+    day(st/nd/rd/th) year" from three integers month (0-11) day (0-31)
     and year (1970-inf.) *)
 val format_date : int -> int -> int -> string
 
@@ -12,7 +12,7 @@ val format_date : int -> int -> int -> string
 val format_time : int -> int -> int -> string
 
 (** [convert_time_stamp ()] is the cleanly formatted string of the form
-    "hh:mm:ss On month day, year" found from unix timestamp string and
+    "hh:mm:ss On month day year" found from unix timestamp string and
     converted to a readable string *)
 val convert_time_stamp : string -> string
 
@@ -26,3 +26,11 @@ val get_price_time : unit -> float * string
     the form "Current Price: <price>\nAt Time: <time stamp>" (TBD), for
     printing to GUI*)
 val formatted_str_price_time : unit -> string
+
+(** [csv_bot_price_time ()] returns a CSV-friendly string of the form
+    ["epoch_time, price"]*)
+val csv_bot_price_time : unit -> string
+
+(** [csv_readable_price_time ()] returns a CSV-friendly string of the
+    form ["hh:mm:ss monday day year, price"]*)
+val csv_readable_price_time : unit -> string

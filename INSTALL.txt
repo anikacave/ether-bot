@@ -5,6 +5,9 @@ yojson
 ANSITerminal
 cohttp
 lwt
+cohttp-lwt-unix
+
+Note: Some of our UI functionalities require a Unix machine.
 
 Note yojson and ANSITerminal are part of the standard 3110 ocaml switch. 
 We installed cohttp and lwt by running this command in terminal:
