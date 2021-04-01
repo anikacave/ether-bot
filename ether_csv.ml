@@ -38,7 +38,8 @@ let csv_line channel header =
 let create_csv (file : filename) =
   let buff = open_out file in
   csv_line buff true;
-  Stdlib.close_out buff
+  Stdlib.close_out buff;
+  file
 
 (* Feeds information from one file to an output stream to copy the
    contents of a file into another *)
@@ -77,7 +78,7 @@ let from_csv (flt : float) (file : filename) =
         if Float.of_string (List.nth vals 0) = flt then (
           let close un = Stdlib.close_in input_stream in
           close ();
-          List.nth vals 1)
+          List.nth vals 1 )
         else scan ()
   in
   scan ()

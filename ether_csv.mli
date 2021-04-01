@@ -11,7 +11,7 @@ exception InvalidFileExtensionFormat
 (** [create_csv file] creates csv @ given filename (will be from current
     data availible and should be only one line long to include the most
     current information) *)
-val create_csv : filename -> unit
+val create_csv : filename -> filename
 
 (** [from_csv time file] is the price of the ethereum at given [time].
     If no such entry exists, raises TimeStampNotFound *)

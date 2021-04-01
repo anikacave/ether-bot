@@ -9,8 +9,16 @@ exception File_not_found
 
 exception Malformed_date of string
 
+let filename = "ether_data.csv"
+
 let print_fmt str =
   ANSITerminal.(print_string [ magenta; on_white ] str)
+
+(** [update_create_csv ()] deals with making the csv if it does not
+    exist, else just updates it. The name is: ether_data.csv*)
+let update_create_csv un =
+  if Sys.file_exists filename then safe_update_csv filename
+  else create_csv filename
 
 (** [print_cmds ()] prints the possible commands *)
 let print_cmds () =
@@ -30,11 +38,11 @@ let print_cmds () =
   print_fmt
     "[4] - [price low today]                  : Ether low from today\n";
   print_fmt
-    "[5 <mm/dd/yyyy>] - [price high mm/dd/yy]   : Ether low from \
-     <mm/dd/yy>\n";
+    "[5 <mm/dd/yyyy>] - [price high mm/dd/yyyy]   : Ether low from \
+     <mm/dd/yyyy>\n";
   print_fmt
-    "[6 <mm/dd/yyyy>] - [price low mm/dd/yy]    : Ether high from \
-     <mm/dd/yy>\n"
+    "[6 <mm/dd/yyyy>] - [price low mm/dd/yyyy]    : Ether high from \
+     <mm/dd/yyyy>\n"
 
 (** [open_data_csv] opens [ether_data.csv] if it exists, else it prints
     \"Can not present data\""*)
@@ -72,6 +80,7 @@ let rec recieve_cmds () =
   | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
       print_fmt "Quitting...\n"
   | [ "1" ] | [ "current"; "price" ] ->
+      print_fmt ("updated file: " ^ update_create_csv () ^ "\n");
       print_fmt (formatted_str_price_time () ^ "\n") |> recieve_cmds
   | [ "2" ] | [ "open"; "data" ] -> open_data_csv () |> recieve_cmds
   | [ "3" ] | [ "price"; "high"; "today" ] ->
@@ -86,7 +95,7 @@ let rec recieve_cmds () =
         match time with
         | t ->
             print_fmt
-              ( "You requested the high price from:" ^ t
+              ( "You requested the high price from: " ^ t
               ^ ".\nCommand not currently available\n" );
             recieve_cmds ()
       with Malformed_date s ->
@@ -98,7 +107,7 @@ let rec recieve_cmds () =
         match time with
         | t ->
             print_fmt
-              ( "You requested the low price from:" ^ t
+              ( "You requested the low price from: " ^ t
               ^ ".\nCommand not currently available\n" );
             recieve_cmds ()
       with Malformed_date s ->
@@ -116,8 +125,8 @@ let rec yn_start () =
   print_string "(Y)es/(N)o >";
   match read_line () with
   | exception End_of_file -> ()
-  | "N" | "n" | " n" | " N" -> print_fmt "Quitting...\n"
-  | "Y" | "y" | " y" | " Y" ->
+  | "N" | "n" | " n" | " N" | "yes" | "Yes" -> print_fmt "Quitting...\n"
+  | "Y" | "y" | " y" | " Y" | "no" | "No" ->
       print_cmds ();
       recieve_cmds ()
   | _ ->
