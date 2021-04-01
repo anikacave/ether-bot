@@ -26,3 +26,7 @@ val get_price_time : unit -> float * string
     the form "Current Price: <price>\nAt Time: <time stamp>" (TBD), for
     printing to GUI*)
 val formatted_str_price_time : unit -> string
+
+(** [csv_price_time ()] returns a CSV-friendly string of the form
+    ["epoch time, price"]*)
+val csv_price_time : unit -> string

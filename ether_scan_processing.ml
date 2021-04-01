@@ -77,14 +77,14 @@ let get_price_time un =
   let pair = get_cur_price un in
   match pair with
   | price, time -> (convert_cur_price price, convert_time_stamp time)
-  | _ -> (0.0, "error")
 
 (** [formatted_str_price_time ()] returns a cleanly formatted string of
     the form "Current Price: <price>\nAt Time: <time stamp>" (TBD), for
-    printing to GUI*)
+    printing to UI*)
 let formatted_str_price_time un =
-  let pair = get_cur_price un in
+  let pair = get_price_time un in
   match pair with
   | price, time ->
-      "Current Price: $" ^ price ^ "\nAt Time" ^ convert_time_stamp time
-  | _ -> "error"
+      "Current Price: $" ^ string_of_float price ^ "\n At Time" ^ time
+
+let csv_price_time () = ""
