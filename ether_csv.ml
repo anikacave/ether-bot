@@ -78,7 +78,7 @@ let from_csv (flt : float) (file : filename) =
         if Float.of_string (List.nth vals 0) = flt then (
           let close un = Stdlib.close_in input_stream in
           close ();
-          List.nth vals 1)
+          List.nth vals 1 )
         else scan ()
   in
   scan ()
@@ -98,4 +98,4 @@ let safe_update_csv (file : filename) =
   Sys.rename file (new_file_name ^ "temp");
   Sys.rename new_file_name file;
   Sys.rename (new_file_name ^ "temp") new_file_name;
-  new_file_name
+  file
