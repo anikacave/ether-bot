@@ -71,4 +71,6 @@ let safe_update_csv file =
   let input_stream = open_in file in
   let output_stream = open_out (update_file_name file) in
   copy_paste input_stream output_stream;
-  csv_line output_stream false
+  csv_line output_stream false;
+  Stdlib.close_out output_stream;
+  Stdlib.close_in input_stream
