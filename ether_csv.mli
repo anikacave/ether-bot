@@ -8,7 +8,7 @@ exception TimestampNotFound
     file is named file instead of file.csv *)
 exception InvalidFileExtensionFormat
 
-(** [create_csv ()] creates csv @ given filename (will be from current
+(** [create_csv file] creates csv @ given filename (will be from current
     data availible and should be only one line long to include the most
     current information) *)
 val create_csv : filename -> unit
@@ -17,8 +17,8 @@ val create_csv : filename -> unit
     such entry exists, raises (TBD) *)
 val from_csv : float -> filename -> string
 
-(** [update_csv ()] appends the current data to the a specified csv
+(** [update_csv file] appends the current data to the a specified csv
     file. Writes to a seperate file than the original one specified to
-    avoid deleting all data from a csv file returns the name/path of the
-    new file that will include the updated csv*)
+    avoid deleting all data from a csv file. returns the name of the new
+    file that was written to*)
 val safe_update_csv : filename -> filename
