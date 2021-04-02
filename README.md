@@ -7,5 +7,7 @@ Alma, Kyra, Eric, and Anika's Ether Bot
 - A json parser that can whittle down queries from EtherScan into (price, timestamp), timestamp being in military time format 
 - A CSV builder that can produce a comma seperated value file from parsed EtherScan queries. The user will be able to open this file from the UI
 
+NOTE: If you try to do "current price" too quickly, you will NOT get different values!
+
 ## MS2 GOALS
 - TBD...

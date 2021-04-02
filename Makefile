@@ -19,7 +19,7 @@ run:
 	$(OCAMLBUILD) $(MAIN) && OCAMLRUNPARAM=b ./$(MAIN)
 
 zip:
-	zip bot.zip *.ml* *.json *.sh _tags .merlin .ocamlformat .ocamlinit  Makefile	
+	zip bot.zip *.ml* *.txt  _tags .merlin .ocamlformat .ocamlinit  Makefile	
 	
 docs: docs-public docs-private
 	
