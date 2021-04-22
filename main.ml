@@ -48,9 +48,9 @@ let update_create_csv un =
   else create_csv filename
 
 (** [print_cmds ()] prints the possible commands *)
-let print_cmds () =
-  ANSITerminal.(erase Screen);
-  ANSITerminal.set_cursor 1 1;
+let print_cmds erase_screen =
+  (if erase_screen then ANSITerminal.(erase Screen));
+  if erase_screen then ANSITerminal.set_cursor 1 1;
   print_fmt "COMMANDS:\n";
   print_fmt "[0] - [quit]                             : quit program\n";
 
@@ -105,6 +105,9 @@ let rec recieve_cmds () =
         (Stringext.full_split (read_line ()) ' ')
     with
     | exception End_of_file -> ()
+    | [ "help" ] | [ "Help" ] ->
+        print_cmds false;
+        recieve_cmds ()
     | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
         ( try
             let str = str_how_much_would_have_made () in
@@ -163,7 +166,8 @@ let rec yn_start () =
   | exception End_of_file -> ()
   | "N" | "n" | " n" | " N" | "yes" | "Yes" -> print_fmt "Quitting...\n"
   | "Y" | "y" | " y" | " Y" | "no" | "No" ->
-      print_cmds ();
+      print_cmds true;
+      (* the true is for erasing the screen*)
       recieve_cmds ()
   | _ ->
       print_fmt

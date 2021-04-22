@@ -11,7 +11,7 @@ let convert_cur_price str = float_of_string str
     day(st/nd/rd/th), year" from three integers month (0-11) day (0-31)
     and year (1970-inf.) *)
 let format_date month day year =
-  if year < 1900 || year > 2100 then
+  if year < 1970 || year > 2100 then
     raise (Invalid_date "Invalid input year")
   else
     let string_month =
