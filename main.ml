@@ -28,11 +28,12 @@ let flt_how_much_would_have_made () =
 (* String to be printed of above method*)
 let str_how_much_would_have_made () =
   let flt = flt_how_much_would_have_made () in
-  let str = string_of_float (flt_how_much_would_have_made ()) in
+  let str = string_of_float flt in
   if flt < 0. then
     "If you had invested in Ether at the start of the session, you \
      would have lost $"
     ^ String.sub str 1 (String.length str - 1)
+    (* don't show negative sign just say "lost"*)
   else
     "If you had invested in Ether at the start of the session, you \
      would have made $" ^ str

@@ -106,3 +106,13 @@ let csv_bot_price_time un =
 let csv_readable_price_time un =
   let pair = get_price_time un in
   match pair with price, time -> time ^ ", " ^ string_of_float price
+
+(** [csv_readable_price_time ()] returns a CSV-friendly string of the
+    form ["hh:mm:ss month day year, price"]*)
+let csv_readable_price_time un =
+  let pair = get_price_time un in
+  match pair with
+  | price, time ->
+      String.(sub time 0 8)
+      ^ String.(sub time 11 (length time - 11))
+      ^ ", " ^ string_of_float price
