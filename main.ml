@@ -75,7 +75,7 @@ let print_cmds erase_screen =
     \"Can not present data\""*)
 let open_data_csv () =
   if Sys.file_exists filename then (
-    Unix.system ("open -a textedit " ^ filename);
+    Unix.system ("cat " ^ filename);
     () )
   else print_fmt "Can not present data\n"
 
@@ -164,10 +164,13 @@ let rec yn_start () =
   print_string "(Y)es/(N)o >";
   match read_line () with
   | exception End_of_file -> ()
-  | "N" | "n" | " n" | " N" | "yes" | "Yes" -> print_fmt "Quitting...\n"
-  | "Y" | "y" | " y" | " Y" | "no" | "No" ->
+  | "N" | "n" | " n" | " N" | "No" | "no" -> print_fmt "Quitting...\n"
+  | "Y" | "y" | " y" | " Y" | "Yes" | "yes" ->
       print_cmds true;
       (* the true is for erasing the screen*)
+      (* now get the bot to start working*)
+      print_int
+        (create_process "csv_writer.byte" [||] stdin stdout stderr);
       recieve_cmds ()
   | _ ->
       print_fmt
