@@ -14,4 +14,7 @@ let rec write_to_csv un =
   print_endline "in write_to_csv";
   write_to_csv un
 
+(* will hopefully be able to add writing to a bot csv using anika's new
+   methods in ether_csv.ml *)
+
 let main = write_to_csv ()
