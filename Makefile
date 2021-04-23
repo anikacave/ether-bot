@@ -1,9 +1,10 @@
-MODULES=ether_csv ether_scan_processing ether_scan_query main
+MODULES=ether_csv ether_scan_processing ether_scan_query main csv_writer
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
 TEST=test.byte
 MAIN=main.byte
+CSV_WRITER=csv_writer.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind
 
 default: build
@@ -17,6 +18,9 @@ test:
 
 run:
 	$(OCAMLBUILD) $(MAIN) && OCAMLRUNPARAM=b ./$(MAIN)
+
+run_csv_writer:
+	$(OCAMLBUILD) $(CSV_WRITER) && OCAMLRUNPARAM=b ./$(CSV_WRITER)
 
 zip:
 	zip bot.zip *.ml* *.txt  _tags .merlin .ocamlformat .ocamlinit  Makefile	
