@@ -3,6 +3,8 @@ open Ether_csv
 (* have to open Ether_csv instead of main, opening main runs UI*)
 let filename = "ether_data.csv"
 
+let bot_filename = "ether_data_bot_time.csv"
+
 (** [write_to_csv ()] is a script that continually writes current Ether
     prices to [filename]*)
 let rec write_to_csv un =

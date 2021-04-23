@@ -23,6 +23,10 @@ let is_valid_csv_row (row : string) =
     ether_scan_processing and converting into comma seperated values *)
 let make_csv_row un = csv_readable_price_time () ^ "\n"
 
+(** Makes a formatted row of the csv file by calling functions from
+    ether_scan_processing and converting into comma seperated values *)
+let make_csv_bot_row un = csv_bot_price_time () ^ "\n"
+
 (* Prints to CSV output channel if header is marked as true, then a
    header will be appended to the beginning of the channel otherwise it
    will be assumed that the file is already properly labelled *)
