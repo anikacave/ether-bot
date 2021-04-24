@@ -5,6 +5,10 @@ type filename = string
    bot-friendly *)
 type readable_format = bool
 
+type timestamp = float
+
+type price = float
+
 (** Exception thrown when searching for a price at time*)
 exception TimestampNotFound
 
@@ -27,3 +31,13 @@ val from_csv : float -> filename -> string
     file that was written to. Raises InvalidFileExtensionFormat if the
     file extension is illegal*)
 val safe_update_csv : filename -> readable_format -> filename
+
+(* Finds the highest price in the past 24 hours. Searches through the
+   CSV data. If data from the past 24 hours is not included in the csv
+   file, throws the TimestampNotFound exception *)
+val high_today : filename -> timestamp * price
+
+(* Finds the lowest price in the past 24 hours. Searches through the CSV
+   data. If data from the past 24 hours is not included in the csv file,
+   throws the TimestampNotFound exception *)
+val low_today : filename -> timestamp * price
