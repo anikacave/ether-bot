@@ -8,7 +8,7 @@ let bot_filename = "ether_data_bot_time.csv"
 (** [write_to_csv ()] is a script that continually writes current Ether
     prices to [filename]*)
 let rec write_to_csv (usr_friendly : readable_format) un =
-  if Sys.file_exists filename then safe_update_csv filename
+  if Sys.file_exists filename then safe_update_csv filename usr_friendly
   else create_csv filename usr_friendly;
   Unix.sleep 60;
 

@@ -26,4 +26,4 @@ val from_csv : float -> filename -> string
     avoid deleting all data from a csv file. returns the name of the new
     file that was written to. Raises InvalidFileExtensionFormat if the
     file extension is illegal*)
-val safe_update_csv : filename -> filename
+val safe_update_csv : filename -> readable_format -> filename

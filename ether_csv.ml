@@ -96,12 +96,12 @@ let from_csv (flt : float) (file : filename) =
    file. Writes to a seperate file than the original one specified to
    avoid deleting all data from a csv file. returns the name of the new
    file that was written to*)
-let safe_update_csv (file : filename) =
+let safe_update_csv (file : filename) (usr_friendly : readable_format) =
   let input_stream = open_in file in
   let new_file_name = update_file_name file in
   let output_stream = open_out new_file_name in
   copy_paste input_stream output_stream;
-  csv_line output_stream false;
+  csv_line output_stream false usr_friendly ();
   Stdlib.close_out output_stream;
   Stdlib.close_in input_stream;
   Sys.rename file (new_file_name ^ "temp");
