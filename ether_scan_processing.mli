@@ -26,8 +26,7 @@ val convert_time_stamp : string -> string
 val get_price_time : unit -> float * string
 
 (** [formatted_str_price_time ()] returns a cleanly formatted string of
-    the form "Current Price: <price>\nAt Time: <time stamp>" (TBD), for
-    printing to GUI*)
+    the form "<time stamp> : <price>" (TBD), for printing to GUI*)
 val formatted_str_price_time : unit -> string
 
 (** [csv_bot_price_time ()] returns a CSV-friendly string of the form
