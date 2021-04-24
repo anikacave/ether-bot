@@ -6,6 +6,10 @@ type filename = string
 
 type readable_format = bool
 
+type timestamp = float
+
+type price = float
+
 exception TimestampNotFound
 
 exception InvalidFileExtensionFormat
@@ -108,3 +112,7 @@ let safe_update_csv (file : filename) (usr_friendly : readable_format) =
   Sys.rename new_file_name file;
   Sys.rename (new_file_name ^ "temp") new_file_name;
   file
+
+let high_today filename = raise TimestampNotFound
+
+let low_today filename = raise TimestampNotFound
