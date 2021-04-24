@@ -4,6 +4,8 @@ open Csv
 (* Filename type *)
 type filename = string
 
+type readable_format = bool
+
 exception TimestampNotFound
 
 exception InvalidFileExtensionFormat
@@ -30,18 +32,21 @@ let make_csv_bot_row un = csv_bot_price_time () ^ "\n"
 (* Prints to CSV output channel if header is marked as true, then a
    header will be appended to the beginning of the channel otherwise it
    will be assumed that the file is already properly labelled *)
-let csv_line channel header =
-  let bytes2 =
-    if header then row_header ^ make_csv_row () else make_csv_row ()
+let csv_line channel header (usr_friendly : readable_format) () =
+  let format () =
+    match usr_friendly with
+    | true -> make_csv_row ()
+    | false -> make_csv_bot_row ()
   in
+  let bytes2 = if header then row_header ^ format () else format () in
   output_string channel bytes2
 
 (** [create_csv file] creates csv @ given filename (will be from current
     data availible and should be only one line long to include the most
     current information) *)
-let create_csv (file : filename) =
+let create_csv (file : filename) (usr_friendly : readable_format) =
   let buff = open_out file in
-  csv_line buff true;
+  csv_line buff true usr_friendly ();
   Stdlib.close_out buff;
   file
 
@@ -82,7 +87,7 @@ let from_csv (flt : float) (file : filename) =
         if Float.of_string (List.nth vals 0) = flt then (
           let close un = Stdlib.close_in input_stream in
           close ();
-          List.nth vals 1 )
+          List.nth vals 1)
         else scan ()
   in
   scan ()

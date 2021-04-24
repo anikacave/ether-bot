@@ -45,7 +45,7 @@ let print_fmt str = ANSITerminal.(print_string [ magenta ] str)
     exist, else just updates it. The name is: ether_data.csv*)
 let update_create_csv un =
   if Sys.file_exists filename then safe_update_csv filename
-  else create_csv filename
+  else create_csv filename true
 
 (** [print_cmds ()] prints the possible commands *)
 let print_cmds erase_screen =
@@ -76,7 +76,7 @@ let print_cmds erase_screen =
 let open_data_csv () =
   if Sys.file_exists filename then (
     Unix.system ("cat " ^ filename);
-    () )
+    ())
   else print_fmt "Can not present data\n"
 
 (** [reformat_user_timestamp s] is the csv-friendly timestamp, derived
@@ -109,10 +109,10 @@ let rec recieve_cmds () =
         print_cmds false;
         recieve_cmds ()
     | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
-        ( try
-            let str = str_how_much_would_have_made () in
-            print_fmt (str ^ "\n")
-          with Est_price_exc s -> print_fmt (s ^ "\n") );
+        (try
+           let str = str_how_much_would_have_made () in
+           print_fmt (str ^ "\n")
+         with Est_price_exc s -> print_fmt (s ^ "\n"));
         print_fmt "Quitting...\n"
     | [ "1" ] | [ "current"; "price" ] ->
         print_fmt ("updated file: " ^ update_create_csv () ^ "\n");
@@ -130,24 +130,24 @@ let rec recieve_cmds () =
           match time with
           | t ->
               print_fmt
-                ( "You requested the high price from: " ^ t
-                ^ ".\nCommand not currently available\n" );
+                ("You requested the high price from: " ^ t
+               ^ ".\nCommand not currently available\n");
               recieve_cmds ()
         with Malformed_date s ->
           print_fmt (s ^ "\n");
-          recieve_cmds () )
+          recieve_cmds ())
     | [ "6"; s ] | [ "price"; "low"; s ] -> (
         try
           let time = reformat_user_timestamp s in
           match time with
           | t ->
               print_fmt
-                ( "You requested the low price from: " ^ t
-                ^ ".\nCommand not currently available\n" );
+                ("You requested the low price from: " ^ t
+               ^ ".\nCommand not currently available\n");
               recieve_cmds ()
         with Malformed_date s ->
           print_fmt (s ^ "\n");
-          recieve_cmds () )
+          recieve_cmds ())
     | _ ->
         print_fmt
           "I could not understand your choice of command. Please try \

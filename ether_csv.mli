@@ -1,6 +1,10 @@
 (** The type filename *)
 type filename = string
 
+(* Format of the csv file, true if user-friendly and false if
+   bot-friendly *)
+type readable_format = bool
+
 (** Exception thrown when searching for a price at time*)
 exception TimestampNotFound
 
@@ -11,7 +15,7 @@ exception InvalidFileExtensionFormat
 (** [create_csv file] creates csv @ given filename (will be from current
     data availible and should be only one line long to include the most
     current information) *)
-val create_csv : filename -> filename
+val create_csv : filename -> readable_format -> filename
 
 (** [from_csv time file] is the price of the ethereum at given [time].
     If no such entry exists, raises TimeStampNotFound *)
