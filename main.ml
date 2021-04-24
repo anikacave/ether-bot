@@ -21,6 +21,8 @@ let unreadable_pid = ref 0
 
 let filename = "ether_data.csv"
 
+let bot_filename = "ether_data_bot_time.csv"
+
 (* The initial price of Ether at the start of the session*)
 let init_price = fst (get_price_time ())
 
@@ -126,10 +128,22 @@ let rec recieve_cmds () =
         print_fmt (formatted_str_price_time () ^ "\n") |> recieve_cmds
     | [ "2" ] | [ "open"; "data" ] -> open_data_csv () |> recieve_cmds
     | [ "3" ] | [ "price"; "high"; "today" ] ->
-        print_fmt "command not currently available\n";
+        ( match high_today bot_filename with
+        | exception TimestampNotFound ->
+            print_fmt "No data from today\n"
+        | time, price ->
+            print_fmt
+              ("Price high from today: " ^ string_of_float price ^ "\n")
+        );
         recieve_cmds ()
     | [ "4" ] | [ "price"; "low"; "today" ] ->
-        print_fmt "command not currently available\n";
+        ( match low_today bot_filename with
+        | exception TimestampNotFound ->
+            print_fmt "No data from today\n"
+        | time, price ->
+            print_fmt
+              ("Price low from today: " ^ string_of_float price ^ "\n")
+        );
         recieve_cmds ()
     | [ "5"; s ] | [ "price"; "high"; s ] -> (
         try
