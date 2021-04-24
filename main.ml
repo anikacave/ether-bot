@@ -115,7 +115,8 @@ let rec recieve_cmds () =
          with Est_price_exc s -> print_fmt (s ^ "\n"));
         print_fmt "Quitting...\n"
     | [ "1" ] | [ "current"; "price" ] ->
-        print_fmt ("updated file: " ^ update_create_csv () ^ "\n");
+        (* print_fmt ("updated file: " ^ update_create_csv () ^ "\n"); *)
+        (* SHOULD NOT BE UPDATING, THE BOT DOES THAT NOW!*)
         print_fmt (formatted_str_price_time () ^ "\n") |> recieve_cmds
     | [ "2" ] | [ "open"; "data" ] -> open_data_csv () |> recieve_cmds
     | [ "3" ] | [ "price"; "high"; "today" ] ->
@@ -151,7 +152,7 @@ let rec recieve_cmds () =
     | _ ->
         print_fmt
           "I could not understand your choice of command. Please try \
-           again\n";
+           again, or type [help]\n";
         recieve_cmds ()
   with Query_Failed s ->
     print_fmt (s ^ "\n");
@@ -167,10 +168,18 @@ let rec yn_start () =
   | "N" | "n" | " n" | " N" | "No" | "no" -> print_fmt "Quitting...\n"
   | "Y" | "y" | " y" | " Y" | "Yes" | "yes" ->
       print_cmds true;
+
       (* the true is for erasing the screen*)
       (* now get the bot to start working*)
-      print_int
-        (create_process "csv_writer.byte" [||] stdin stdout stderr);
+      (* this for some reason is not working. so maybe it's b/c sharing
+         stdin, stdout, stderr. let's create new files and see if that
+         helps*)
+      let new_pid =
+        create_process "./csv_writer.byte"
+          [| "./csv_writer.byte" |]
+          stdin stdout stderr
+      in
+      new_pid;
       recieve_cmds ()
   | _ ->
       print_fmt
