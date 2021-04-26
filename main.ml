@@ -74,7 +74,9 @@ let print_cmds erase_screen =
      <mm/dd/yyyy>\n";
   print_fmt
     "[6 <mm/dd/yyyy>] - [price low mm/dd/yyyy]    : Ether high from \
-     <mm/dd/yyyy>\n"
+     <mm/dd/yyyy>\n";
+  print_fmt
+    "[help]                                       : Redisplay commands\n"
 
 (** [open_data_csv] opens [ether_data.csv] if it exists, else it prints
     \"Can not present data\""*)
