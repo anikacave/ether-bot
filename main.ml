@@ -21,7 +21,7 @@ let unreadable_pid = ref 0
 
 let filename = "ether_data.csv"
 
-let bot_filename = "ether_data_bot_time.csv"
+let bot_filename = "ether_data_bot.csv"
 
 (* The initial price of Ether at the start of the session*)
 let init_price = fst (get_price_time ())
