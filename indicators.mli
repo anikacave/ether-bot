@@ -10,7 +10,7 @@ type dataset = int * float list
 (* parses a csv file and constructs dataset 
     formatter describes how to parse each line into a tuple
     [from_csv formatter file_name] is a dataset from the file*)
-val from_csv : (string -> int * float) -> string -> dataset
+val from_csv : (string -> (int * float) option) -> string -> dataset
 
 (* constructs a dataset from a list of tuples *)
 val from_tuple_list : (int * float list) -> dataset
