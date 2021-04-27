@@ -21,7 +21,7 @@ let unreadable_pid = ref 0
 
 let filename = "ether_data.csv"
 
-let bot_filename = "ether_data_bot_time.csv"
+let bot_filename = "ether_data_bot.csv"
 
 (* The initial price of Ether at the start of the session*)
 let init_price = fst (get_price_time ())
@@ -74,7 +74,9 @@ let print_cmds erase_screen =
      <mm/dd/yyyy>\n";
   print_fmt
     "[6 <mm/dd/yyyy>] - [price low mm/dd/yyyy]    : Ether high from \
-     <mm/dd/yyyy>\n"
+     <mm/dd/yyyy>\n";
+  print_fmt
+    "[help]                                       : Redisplay commands\n"
 
 (** [open_data_csv] opens [ether_data.csv] if it exists, else it prints
     \"Can not present data\""*)
