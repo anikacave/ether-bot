@@ -39,20 +39,30 @@ let from_tuple_list (lst : (int * float) list) : dataset = lst
 (* returns a subset of the dataset from [trim dataset begin end] is a
    dataset including datapoints between begin and end inclusive *)
 let rec trim (t : dataset) start finish : dataset =
-  let filter_fun x = fst x > start && fst x < finish in
+  let filter_fun x = fst x > start && fst x <= finish in
   List.filter filter_fun t
 
 let rec sum lst =
   match lst with [] -> 0. | (time, price) :: t -> price +. sum t
 
-let rec trim_lists t period pd =
-  match t with
-  | [] -> []
-  | _ -> trim t pd (pd + period) :: trim_lists t period (pd + period)
+let rec avgs_in_period_list t period pd counter =
+  if List.length t < pd then (0., counter)
+  else
+    let trim_list = trim t pd (pd + period) in
+    let recurse =
+      avgs_in_period_list t period (pd + period) (counter + 1)
+    in
+    if List.length trim_list = 0 then (fst recurse, counter)
+    else
+      ( (sum trim_list /. float_of_int (List.length trim_list))
+        +. fst recurse,
+        snd recurse )
 
 (* [sma dataset period] is the SMA of the dataset given the desired
    period*)
-let sma t period = failwith "unimplemented"
+let rec sma t period =
+  let pair = avgs_in_period_list t period 0 1 in
+  fst pair /. float_of_int (snd pair - 1)
 
 (* [stoch data] is the stochastic oscillator (indicator) with lookback
    period of 14 days and with closing time of ~11:59*)
