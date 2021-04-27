@@ -1,10 +1,12 @@
 (** this file calculates indicator values from raw price data *)
 
+exception Invalid_start_finish of string
+
 (* a list of tuples of epoch time and USD price from csv_data_bot
    Requires: the time is ordered from newest to oldest *)
 
 (* represents the raw data to calculate indicators from *)
-type dataset = int * float list
+type dataset = (int * float) list
 
 (* parses a csv file and constructs dataset formatter describes how to
    parse each line into a tuple [from_csv formatter file_name] is a
@@ -12,11 +14,13 @@ type dataset = int * float list
 let from_csv = failwith "unimplemented"
 
 (* constructs a dataset from a list of tuples *)
-let from_tuple_list lst = failwith "unimlemented"
+let from_tuple_list (lst : (int * float) list) : dataset = lst
 
 (* returns a subset of the dataset from [trim dataset begin end] is a
    dataset including datapoints between begin and end inclusive *)
-let trim t start finish = failwith "unimplemented"
+let rec trim (t : dataset) start finish : dataset =
+  let filter_fun x = fst x > start && fst x < finish in
+  List.filter filter_fun t
 
 (* [sma dataset period] is the SMA of the dataset given the desired
    period*)
