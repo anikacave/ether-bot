@@ -194,12 +194,12 @@ let find_extreme_row
   in
   scan false None
 
-let get_current_epoch_time un = Unix.time () -. 86400.
+let epoch_time_24_hours_ago un = Unix.time () -. 86400.
 
 let high_today (file : filename) =
   let row =
     find_extreme_row file Max "formatted time"
-      (get_current_epoch_time ())
+      (epoch_time_24_hours_ago ())
       "price"
   in
   (List.nth row 0, List.nth row 1)
@@ -207,7 +207,7 @@ let high_today (file : filename) =
 let low_today (file : filename) =
   let row =
     find_extreme_row file Min "formatted time"
-      (get_current_epoch_time ())
+      (epoch_time_24_hours_ago ())
       "price"
   in
   (List.nth row 0, List.nth row 1)
