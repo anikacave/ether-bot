@@ -1,5 +1,6 @@
 open Ether_scan_processing
 open Csv
+open Unix
 
 (* Filename type *)
 type filename = string
@@ -193,12 +194,20 @@ let find_extreme_row
   in
   scan false None
 
-let get_current_unix_time un = ()
+let get_current_epoch_time un = Unix.time () -. 86400.
 
 let high_today (file : filename) =
-  let row = find_extreme_row file Max "formatted time" 10. "price" in
+  let row =
+    find_extreme_row file Max "formatted time"
+      (get_current_epoch_time ())
+      "price"
+  in
   (List.nth row 0, List.nth row 1)
 
 let low_today (file : filename) =
-  let row = find_extreme_row file Min "formatted time" 10. "price" in
+  let row =
+    find_extreme_row file Min "formatted time"
+      (get_current_epoch_time ())
+      "price"
+  in
   (List.nth row 0, List.nth row 1)
