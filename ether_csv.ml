@@ -170,13 +170,15 @@ let find_extreme_row
         Stdlib.close_in input_stream;
         match ext_val with
         | None ->
-            print_string "hello";
             Stdlib.close_in input_stream;
-            failwith "hello"
-        (* | None -> raise TimestampNotFound *)
+            raise TimestampNotFound
         | Some value -> value)
     | Some h -> (
-        let vals = String.split_on_char ',' h in
+        let vals =
+          List.map
+            (fun a -> Float.of_string a)
+            (String.split_on_char ',' h)
+        in
         if past_min = false then
           if List.nth vals scope_col_num < min then scan false None
           else scan true None
@@ -194,9 +196,9 @@ let find_extreme_row
 let get_current_unix_time un = ()
 
 let high_today (file : filename) =
-  let row = find_extreme_row file Max "formatted time" "10" "price" in
-  (Float.of_string (List.nth row 0), Float.of_string (List.nth row 1))
+  let row = find_extreme_row file Max "formatted time" 10. "price" in
+  (List.nth row 0, List.nth row 1)
 
 let low_today (file : filename) =
-  let row = find_extreme_row file Min "formatted time" "10" "price" in
-  (Float.of_string (List.nth row 0), Float.of_string (List.nth row 1))
+  let row = find_extreme_row file Min "formatted time" 10. "price" in
+  (List.nth row 0, List.nth row 1)
