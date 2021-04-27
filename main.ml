@@ -36,12 +36,12 @@ let str_how_much_would_have_made () =
   let flt = flt_how_much_would_have_made () in
   let str = string_of_float flt in
   if flt < 0. then
-    "If you had invested in Ether at the start of the session, you \
+    "If you had purchased one Ether at the start of the session, you \
      would have lost $"
     ^ String.sub str 1 (String.length str - 1)
     (* don't show negative sign just say "lost"*)
   else
-    "If you had invested in Ether at the start of the session, you \
+    "If you had purchased one Ether at the start of the session, you \
      would have made $" ^ str
 
 (* ANSITerminal formatting*)
@@ -56,31 +56,37 @@ let print_fmt str = ANSITerminal.(print_string [ magenta ] str)
 let print_cmds erase_screen =
   (if erase_screen then ANSITerminal.(erase Screen));
   if erase_screen then ANSITerminal.set_cursor 1 1;
-  print_fmt "COMMANDS:\n";
+  print_fmt "HOME ~ COMMANDS:\n";
   print_fmt "[0] - [quit]                             : quit program\n";
 
   print_fmt
     "[1] - [current price]                    : get the current USD \
      price of Ether\n";
   print_fmt
-    "[2] - [open data]                        : opens the \
-     ether_log.csv file in your system's default application\n";
+    "[2] - [show wealth]                      : takes you to the \
+     wealth management screen\n";
   print_fmt
-    "[3] - [price high today]                 : Ether high today\n";
+    "[3] - [open data]                        : prints contents of \
+     ether_data.csv to terminal\n";
   print_fmt
-    "[4] - [price low today]                  : Ether low from today\n";
+    "[4] - [open bot data]                    : prints contents of \
+     ether_data_bot.csv to terminal\n";
   print_fmt
-    "[5 <mm/dd/yyyy>] - [price high mm/dd/yyyy]   : Ether low from \
+    "[5] - [price high today]                 : Ether high today\n";
+  print_fmt
+    "[6] - [price low today]                  : Ether low from today\n";
+  print_fmt
+    "[7 <mm/dd/yyyy>] - [price high mm/dd/yyyy]   : Ether low from \
      <mm/dd/yyyy>\n";
   print_fmt
-    "[6 <mm/dd/yyyy>] - [price low mm/dd/yyyy]    : Ether high from \
+    "[8 <mm/dd/yyyy>] - [price low mm/dd/yyyy]    : Ether high from \
      <mm/dd/yyyy>\n";
   print_fmt
-    "[help]                                       : Redisplay commands\n"
+    "[9] - [help]                             : Redisplay commands\n"
 
 (** [open_data_csv] opens [ether_data.csv] if it exists, else it prints
     \"Can not present data\""*)
-let open_data_csv () =
+let open_data_csv filename =
   if Sys.file_exists filename then (
     Unix.system ("cat " ^ filename);
     () )
@@ -112,9 +118,6 @@ let rec recieve_cmds () =
         (Stringext.full_split (read_line ()) ' ')
     with
     | exception End_of_file -> ()
-    | [ "help" ] | [ "Help" ] ->
-        print_cmds false;
-        recieve_cmds ()
     | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
         ( try
             let str = str_how_much_would_have_made () in
@@ -128,8 +131,14 @@ let rec recieve_cmds () =
         (* print_fmt ("updated file: " ^ update_create_csv () ^ "\n"); *)
         (* SHOULD NOT BE UPDATING, THE BOT DOES THAT NOW!*)
         print_fmt (formatted_str_price_time () ^ "\n") |> recieve_cmds
-    | [ "2" ] | [ "open"; "data" ] -> open_data_csv () |> recieve_cmds
-    | [ "3" ] | [ "price"; "high"; "today" ] ->
+    | [ "2" ] | [ "show"; "wealth" ] ->
+        print_show_wealth ();
+        recieve_wealth_cmds ()
+    | [ "3" ] | [ "open"; "data" ] ->
+        open_data_csv filename |> recieve_cmds
+    | [ "4" ] | [ "open"; "bot"; "data" ] ->
+        open_data_csv bot_filename |> recieve_cmds
+    | [ "5" ] | [ "price"; "high"; "today" ] ->
         ( match high_today bot_filename with
         | exception TimestampNotFound ->
             print_fmt "No data from today\n"
@@ -138,7 +147,7 @@ let rec recieve_cmds () =
               ("Price high from today: " ^ string_of_float price ^ "\n")
         );
         recieve_cmds ()
-    | [ "4" ] | [ "price"; "low"; "today" ] ->
+    | [ "6" ] | [ "price"; "low"; "today" ] ->
         ( match low_today bot_filename with
         | exception TimestampNotFound ->
             print_fmt "No data from today\n"
@@ -147,7 +156,7 @@ let rec recieve_cmds () =
               ("Price low from today: " ^ string_of_float price ^ "\n")
         );
         recieve_cmds ()
-    | [ "5"; s ] | [ "price"; "high"; s ] -> (
+    | [ "7"; s ] | [ "price"; "high"; s ] -> (
         try
           let time = reformat_user_timestamp s in
           match time with
@@ -159,7 +168,7 @@ let rec recieve_cmds () =
         with Malformed_date s ->
           print_fmt (s ^ "\n");
           recieve_cmds () )
-    | [ "6"; s ] | [ "price"; "low"; s ] -> (
+    | [ "8"; s ] | [ "price"; "low"; s ] -> (
         try
           let time = reformat_user_timestamp s in
           match time with
@@ -171,6 +180,9 @@ let rec recieve_cmds () =
         with Malformed_date s ->
           print_fmt (s ^ "\n");
           recieve_cmds () )
+    | [ "9" ] | [ "help" ] | [ "Help" ] ->
+        print_cmds false;
+        recieve_cmds ()
     | _ ->
         print_fmt
           "I could not understand your choice of command. Please try \
@@ -179,6 +191,34 @@ let rec recieve_cmds () =
   with Query_Failed s ->
     print_fmt (s ^ "\n");
     recieve_cmds ()
+
+and print_show_wealth un =
+  ANSITerminal.(erase Screen);
+  ANSITerminal.set_cursor 1 1;
+  print_fmt "WEALTH ~ COMMANDS\n";
+  print_fmt "You own <ff.ff> Ether\n";
+  print_fmt "Worth: <ff.ff>\n";
+  print_fmt "Spent: <ff.ff>\n";
+  print_fmt "Would you like to...\n";
+  print_fmt
+    "[0 <ff.ff>] - [buy <ff.ff>]              : Buy <ff.ff> Ether\n";
+  print_fmt
+    "[1 <ff.ff>] - [sell <ff.ff>]             : Sell <ff.ff> Ether\n";
+  print_fmt
+    "[2] - [home]                             : Return to home\n"
+
+and recieve_wealth_cmds un =
+  print_string "> ";
+  match
+    List.filter
+      (fun s -> s <> " ")
+      (Stringext.full_split (read_line ()) ' ')
+  with
+  | exception End_of_file -> ()
+  | _ ->
+      print_fmt "Not yet implemented... Returning to home\n";
+      print_cmds false;
+      recieve_cmds ()
 
 (** [yn_start ()] prompts user if they mean to enter the bot, calls
     [prompt_cmds ()] if "Y" and quits if "N". Repeats until desired
