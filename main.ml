@@ -2,6 +2,7 @@ open Ether_scan_processing
 open Ether_csv
 open Ether_scan_query
 open Unix
+open Wealth
 
 (* Here we should open Ether_csv, Ether_scan_processing,
    Ether_scan_query *)
@@ -107,6 +108,16 @@ let reformat_user_timestamp s =
   with Invalid_date s ->
     raise (Malformed_date ("Incorrectly formated date: " ^ s))
 
+let quit_prog un =
+  ( try
+      let str = str_how_much_would_have_made () in
+      print_fmt (str ^ "\n")
+    with Est_price_exc s -> print_fmt (s ^ "\n") );
+  kill !readable_pid 9;
+  (*kill the bot writing to ether_csv*)
+  kill !unreadable_pid 9;
+  print_fmt "Quitting...\n"
+
 (** [recieve_cmds ()] is a REPL that displays the possible commands,
     reroutes the user to another method, and quits upon "q"*)
 let rec recieve_cmds () =
@@ -119,21 +130,14 @@ let rec recieve_cmds () =
     with
     | exception End_of_file -> ()
     | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
-        ( try
-            let str = str_how_much_would_have_made () in
-            print_fmt (str ^ "\n")
-          with Est_price_exc s -> print_fmt (s ^ "\n") );
-        kill !readable_pid 9;
-        (*kill the bot writing to ether_csv*)
-        kill !unreadable_pid 9;
-        print_fmt "Quitting...\n"
+        quit_prog ()
     | [ "1" ] | [ "current"; "price" ] ->
         (* print_fmt ("updated file: " ^ update_create_csv () ^ "\n"); *)
         (* SHOULD NOT BE UPDATING, THE BOT DOES THAT NOW!*)
         print_fmt (formatted_str_price_time () ^ "\n") |> recieve_cmds
     | [ "2" ] | [ "show"; "wealth" ] ->
-        print_show_wealth ();
-        recieve_wealth_cmds ()
+        print_show_wealth 0.0 0.0 0.0 true;
+        recieve_wealth_cmds 0.0 0.0 0.0
     | [ "3" ] | [ "open"; "data" ] ->
         open_data_csv filename |> recieve_cmds
     | [ "4" ] | [ "open"; "bot"; "data" ] ->
@@ -192,22 +196,25 @@ let rec recieve_cmds () =
     print_fmt (s ^ "\n");
     recieve_cmds ()
 
-and print_show_wealth un =
-  ANSITerminal.(erase Screen);
-  ANSITerminal.set_cursor 1 1;
+and print_show_wealth ether_amt ether_wth ether_spt erase_screen =
+  if erase_screen then (
+    ANSITerminal.(erase Screen);
+    ANSITerminal.set_cursor 1 1 )
+  else ();
   print_fmt "WEALTH ~ COMMANDS\n";
-  print_fmt "You own <ff.ff> Ether\n";
-  print_fmt "Worth: <ff.ff>\n";
-  print_fmt "Spent: <ff.ff>\n";
+  print_fmt ("You own " ^ string_of_float ether_amt ^ " Ether\n");
+  print_fmt ("Worth: " ^ string_of_float ether_wth ^ "\n");
+  print_fmt ("Spent: " ^ string_of_float ether_spt ^ "\n");
   print_fmt "Would you like to...\n";
+  print_fmt "[0] - [quit]                             : Quit program\n";
   print_fmt
-    "[0 <ff.ff>] - [buy <ff.ff>]              : Buy <ff.ff> Ether\n";
+    "[1 <ff.ff>] - [buy <ff.ff>]              : Buy <ff.ff> Ether\n";
   print_fmt
-    "[1 <ff.ff>] - [sell <ff.ff>]             : Sell <ff.ff> Ether\n";
+    "[2 <ff.ff>] - [sell <ff.ff>]             : Sell <ff.ff> Ether\n";
   print_fmt
-    "[2] - [home]                             : Return to home\n"
+    "[3] - [home]                             : Return to home\n"
 
-and recieve_wealth_cmds un =
+and recieve_wealth_cmds ether_amt ether_wth ether_spt =
   print_string "> ";
   match
     List.filter
@@ -215,10 +222,39 @@ and recieve_wealth_cmds un =
       (Stringext.full_split (read_line ()) ' ')
   with
   | exception End_of_file -> ()
-  | _ ->
-      print_fmt "Not yet implemented... Returning to home\n";
-      print_cmds false;
+  | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
+      quit_prog ()
+  | [ "1"; flt ] | [ "buy"; flt ] -> (
+      let amt_buy = float_of_string flt in
+      try
+        print_show_wealth (ether_own_add amt_buy) (ether_worth 0.0)
+          (ether_spent_add amt_buy 0.0)
+          false;
+        recieve_wealth_cmds ether_amt ether_wth ether_spt
+      with InvalidEtherAmount s ->
+        print_fmt (s ^ "\n");
+        recieve_wealth_cmds ether_amt ether_wth ether_spt )
+  | [ "2"; flt ] | [ "sell"; flt ] -> (
+      let amt_sell = float_of_string flt in
+      try
+        print_show_wealth
+          (ether_own_sub amt_sell)
+          (ether_worth 0.0)
+          (ether_spent_sub amt_sell 0.0)
+          false;
+        recieve_wealth_cmds ether_amt ether_wth ether_spt
+      with InvalidEtherAmount s ->
+        print_fmt (s ^ "\n");
+        recieve_wealth_cmds ether_amt ether_wth ether_spt )
+  | [ "3" ] | [ "home" ] ->
+      print_cmds true;
       recieve_cmds ()
+  | _ ->
+      print_fmt
+        "I could not understand your choice of command. Please try \
+         again, or type [help]\n";
+      print_show_wealth ether_amt ether_wth ether_spt false;
+      recieve_wealth_cmds ether_amt ether_wth ether_spt
 
 (** [yn_start ()] prompts user if they mean to enter the bot, calls
     [prompt_cmds ()] if "Y" and quits if "N". Repeats until desired
