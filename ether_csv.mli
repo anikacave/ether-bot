@@ -46,5 +46,3 @@ val high_today : filename -> timestamp * price
    throws the TimestampNotFound exception. Throws invalid CSV file if
    the CSV is not readabl *)
 val low_today : filename -> timestamp * price
-
-val get_current_epoch_time : unit -> timestamp
