@@ -64,9 +64,29 @@ let rec sma t period =
   let pair = avgs_in_period_list t period 0 1 in
   fst pair /. float_of_int (snd pair - 1)
 
+let rec low_price t counter acc =
+  match counter with
+  | 13 -> acc
+  | _ ->
+      let counter_elem = snd (List.nth t counter) in
+      if counter_elem < acc then low_price t (counter + 1) counter_elem
+      else low_price t (counter + 1) acc
+
+let rec high_price t counter acc =
+  match counter with
+  | 13 -> acc
+  | _ ->
+      let counter_elem = snd (List.nth t counter) in
+      if counter_elem > acc then high_price t (counter + 1) counter_elem
+      else high_price t (counter + 1) acc
+
 (* [stoch data] is the stochastic oscillator (indicator) with lookback
    period of 14 days and with closing time of ~11:59*)
-let stoch t = failwith "unimplemented"
+let stoch (t : dataset) =
+  let c = snd (List.hd t) in
+  let l14 = low_price t 1 c in
+  let h14 = high_price t 1 c in
+  (c -. l14) /. (h14 -. l14) *. 100.
 
 (* calculates adx *)
 let adx t = failwith "unimplemented"
