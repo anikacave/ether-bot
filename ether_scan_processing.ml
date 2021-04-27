@@ -60,7 +60,7 @@ let format_time hour minute second =
     "hh:mm:ss On month day, year" found from unix timestamp string and
     converted to a readable string *)
 let convert_time_stamp str =
-  let record = Unix.gmtime (float_of_string str) in
+  let record = Unix.localtime (float_of_string str) in
   match record with
   | {
    tm_sec = sec;
@@ -73,7 +73,7 @@ let convert_time_stamp str =
    tm_yday = dayofyear;
    tm_isdst = isdaylightsaving;
   } ->
-      format_time ((hour + 20) mod 24) min sec
+      format_time hour min sec
       ^ " on "
       ^ format_date month day (year + 1900)
 

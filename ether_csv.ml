@@ -1,5 +1,6 @@
 open Ether_scan_processing
 open Csv
+open Unix
 
 (* Filename type *)
 type filename = string
@@ -10,12 +11,18 @@ type timestamp = float
 
 type price = float
 
+type comp =
+  | Min
+  | Max
+
 exception TimestampNotFound
 
 exception InvalidFileExtensionFormat
 
+exception InvalidCSVFile
+
 (* The current decided format of the csv file*)
-let row_header = "formatted time, price\n"
+let row_header = "formatted time,price\n"
 
 (* Checks if a row being appended/added to a CSV file is a valid row
    else will throw a TBD error *)
@@ -113,6 +120,94 @@ let safe_update_csv (file : filename) (usr_friendly : readable_format) =
   Sys.rename (new_file_name ^ "temp") new_file_name;
   file
 
-let high_today filename = raise TimestampNotFound
+(* helper function to find the position of an element in a list *)
+let rec list_num list value num =
+  match list with
+  | [] -> raise TimestampNotFound
+  | h :: t -> if h = value then num else list_num t value (num + 1)
 
-let low_today filename = raise TimestampNotFound
+(* Reads the header of the file and returns a pair which corresponds to
+   the scope column number and the extreme column number (scope_col_num
+   * ext_col_name)*)
+let read_header input_stream scope_col_name ext_col_name =
+  match
+    try Some (input_line input_stream) with End_of_file -> None
+  with
+  | None ->
+      Stdlib.close_in input_stream;
+      raise InvalidCSVFile
+  | Some h ->
+      let head = String.split_on_char ',' h in
+      (list_num head scope_col_name 0, list_num head ext_col_name 0)
+
+(* Finds an extreme value based on a comparator and a column-type in the
+   csv file. Returns the entire row where the extreme is found for a
+   specified column. Takes in comparator < returns the smallest value in
+   a range and > returns the largest value in a range. scope_col_name is
+   the column that is being limited by min and max. ext_col_name is the
+   column that will be used to provide comparisons. REQUIRES: the csv
+   file has a header. REQUIRES: csv file is ordered by the scope
+   parameter *)
+let find_extreme_row
+    (file : filename)
+    comparator
+    scope_col_name
+    min
+    ext_col_name =
+  let input_stream = open_in file in
+  let comp =
+    match comparator with
+    | Max -> fun a b -> a < b
+    | Min -> fun a b -> a > b
+  in
+  let scope_col_num, ext_col_num =
+    read_header input_stream scope_col_name ext_col_name
+  in
+  let rec scan past_min ext_val =
+    match
+      try Some (input_line input_stream) with End_of_file -> None
+    with
+    | None -> (
+        Stdlib.close_in input_stream;
+        match ext_val with
+        | None ->
+            Stdlib.close_in input_stream;
+            raise TimestampNotFound
+        | Some value -> value)
+    | Some h -> (
+        let vals =
+          List.map
+            (fun a -> Float.of_string a)
+            (String.split_on_char ',' h)
+        in
+        if past_min = false then
+          if List.nth vals scope_col_num < min then scan false None
+          else scan true None
+        else
+          let current_val = List.nth vals ext_col_num in
+          match ext_val with
+          | None -> scan true (Some vals)
+          | Some l ->
+              let l_val = List.nth l ext_col_num in
+              if comp l_val current_val then scan true (Some vals)
+              else scan true (Some l))
+  in
+  scan false None
+
+let epoch_time_24_hours_ago un = Unix.time () -. 86400.
+
+let high_today (file : filename) =
+  let row =
+    find_extreme_row file Max "formatted time"
+      (epoch_time_24_hours_ago ())
+      "price"
+  in
+  (List.nth row 0, List.nth row 1)
+
+let low_today (file : filename) =
+  let row =
+    find_extreme_row file Min "formatted time"
+      (epoch_time_24_hours_ago ())
+      "price"
+  in
+  (List.nth row 0, List.nth row 1)
