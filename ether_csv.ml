@@ -194,8 +194,14 @@ let find_extreme_row
   in
   scan false None
 
+(* returns the epoch time 24 hours prior from the time this function is
+   called *)
 let epoch_time_24_hours_ago un = Unix.time () -. 86400.
 
+(* Finds the highest price in the past 24 hours. Searches through the
+   CSV data. If data from the past 24 hours is not included in the csv
+   file, throws the TimestampNotFound exception. Throws invalid CSV file
+   if the CSV is not readable *)
 let high_today (file : filename) =
   let row =
     find_extreme_row file Max "formatted time"
@@ -204,6 +210,10 @@ let high_today (file : filename) =
   in
   (List.nth row 0, List.nth row 1)
 
+(* Finds the lowest price in the past 24 hours. Searches through the CSV
+   data. If data from the past 24 hours is not included in the csv file,
+   throws the TimestampNotFound exception. Throws invalid CSV file if
+   the CSV is not readabl *)
 let low_today (file : filename) =
   let row =
     find_extreme_row file Min "formatted time"
