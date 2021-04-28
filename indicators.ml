@@ -91,5 +91,10 @@ let stoch (t : dataset) =
 (* calculates adx *)
 let adx t = failwith "unimplemented"
 
+let rec ema t period counter =
+  let k = 2. /. (float_of_int period +. 1.) in
+  (snd (List.hd t) *. k)
+  +. (ema (List.tl t) period (counter - 1) *. (1. -. k))
+
 (* calculates macd *)
-let macd t = failwith "unimplemented"
+let macd t = ema t 12 12 -. ema t 26 26
