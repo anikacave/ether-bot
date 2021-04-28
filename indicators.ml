@@ -39,14 +39,18 @@ let from_tuple_list (lst : (int * float) list) : dataset = lst
 (* returns a subset of the dataset from [trim dataset begin end] is a
    dataset including datapoints between begin and end inclusive *)
 let rec trim (t : dataset) start finish : dataset =
-  let filter_fun x = fst x > start && fst x <= finish in
+  let filter_fun x = fst x >= start && fst x < finish in
   List.filter filter_fun t
 
+(* sum of all elements in a list*)
 let rec sum lst =
   match lst with [] -> 0. | (time, price) :: t -> price +. sum t
 
+(* a (float * int pair) where the float is the average of all elements
+   in each period interval of a list summed together and the int is the
+   number of periods. *)
 let rec avgs_in_period_list t period pd counter =
-  if List.length t < pd then (0., counter)
+  if List.length t < pd then (0., counter - 1)
   else
     let trim_list = trim t pd (pd + period) in
     let recurse =
@@ -66,35 +70,37 @@ let rec sma t period =
 
 let rec low_price t counter acc =
   match counter with
-  | 13 -> acc
+  | 0 -> acc
   | _ ->
       let counter_elem = snd (List.nth t counter) in
-      if counter_elem < acc then low_price t (counter + 1) counter_elem
-      else low_price t (counter + 1) acc
+      if counter_elem < acc then low_price t (counter - 1) counter_elem
+      else low_price t (counter - 1) acc
 
 let rec high_price t counter acc =
   match counter with
-  | 13 -> acc
+  | 0 -> acc
   | _ ->
       let counter_elem = snd (List.nth t counter) in
-      if counter_elem > acc then high_price t (counter + 1) counter_elem
-      else high_price t (counter + 1) acc
+      if counter_elem > acc then high_price t (counter - 1) counter_elem
+      else high_price t (counter - 1) acc
 
 (* [stoch data] is the stochastic oscillator (indicator) with lookback
    period of 14 days and with closing time of ~11:59*)
 let stoch (t : dataset) =
   let c = snd (List.hd t) in
-  let l14 = low_price t 1 c in
-  let h14 = high_price t 1 c in
+  let l14 = low_price t 13 c in
+  let h14 = high_price t 13 c in
   (c -. l14) /. (h14 -. l14) *. 100.
 
 (* calculates adx *)
 let adx t = failwith "unimplemented"
 
 let rec ema t period counter =
-  let k = 2. /. (float_of_int period +. 1.) in
-  (snd (List.hd t) *. k)
-  +. (ema (List.tl t) period (counter - 1) *. (1. -. k))
+  if counter = 0 then 0.
+  else
+    let k = 2. /. (float_of_int period +. 1.) in
+    (snd (List.hd t) *. k)
+    +. (ema (List.tl t) period (counter - 1) *. (1. -. k))
 
 (* calculates macd *)
 let macd t = ema t 12 12 -. ema t 26 26
