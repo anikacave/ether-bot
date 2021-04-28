@@ -6,6 +6,32 @@
 (* represents the raw data to calculate indicators from *)
 type dataset = (int * float) list
 
+let readable_to_unix str =
+  let splitcomma = String.split_on_char ',' str in
+  if splitcomma = [] then None
+  else
+    let splitspace = String.split_on_char ' ' (List.hd splitcomma) in
+    if splitspace = [] then None
+    else
+      let date = String.split_on_char '-' (List.hd splitspace) in
+      if date = [] then None
+      else
+        let time = String.split_on_char ':' (List.nth splitspace 1) in
+        if time = [] then None
+        else
+          let year = int_of_string (List.hd date) in
+          let month = int_of_string (List.nth date 1) in
+          let day = int_of_string (List.nth date 2) in
+          let hour = int_of_string (List.hd time) in
+          let minute = int_of_string (List.nth time 1) in
+          let second = int_of_string (List.nth time 2) in
+          let price = float_of_string (List.nth splitcomma 4) in
+          let epoch =
+            second + (60 * minute) + (3600 * hour) + (86400 * (day - 1))
+          in
+          let epochjan12021 = 1609477200 in
+          Some (epochjan12021 + epoch, price)
+
 (* parses a csv file and constructs dataset formatter describes how to
    parse each line into a tuple [from_csv formatter file_name] is a
    dataset from the file*)
@@ -21,7 +47,7 @@ let from_csv parsing_fcn file_name =
     | Some h -> (
         match parsing_fcn h with
         | None -> acc |> scan
-        | Some x -> if x = List.hd acc then acc else x :: acc)
+        | Some x -> x :: acc |> scan)
   in
   scan []
 
@@ -112,18 +138,18 @@ let adx d = failwith "unimplemented"
 (* calculates macd by comparing 12 day vs 26 day ema*)
 let macd d = ema d 12 12 2. -. ema d 26 26 2.
 
-let sma_accesible file_name =
-  let d = from_csv sample_fcn file_name in
-  sma d 86400 10 (fst (List.hd d))
+let sma_accessible file_name =
+  let d = from_csv readable_to_unix file_name in
+  if d = [] then 0. else sma d 86400 10 (fst (List.hd d))
 
-let ema_accesible file_name =
-  let d = from_csv sample_fcn file_name in
+let ema_accessible file_name =
+  let d = from_csv readable_to_unix file_name in
   ema d 86400 10 2.
 
 let stoch_accessible file_name =
-  let d = from_csv sample_fcn file_name in
+  let d = from_csv readable_to_unix file_name in
   stoch d (List.length d) (fst (List.hd d))
 
-let macd_accesible file_name =
-  let d = from_csv sample_fcn file_name in
+let macd_accessible file_name =
+  let d = from_csv readable_to_unix file_name in
   macd d
