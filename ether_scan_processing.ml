@@ -77,6 +77,25 @@ let convert_time_stamp str =
       ^ " on "
       ^ format_date month day (year + 1900)
 
+(* CLEAN THIS UP LATER*)
+let readable_to_unix str =
+  let splitcomma = String.split_on_char ',' str in
+  let splitspace = String.split_on_char ' ' (List.hd splitcomma) in
+  let date = String.split_on_char '-' (List.hd splitspace) in
+  let time = String.split_on_char ':' (List.hd (List.tl splitspace)) in
+  let year = int_of_string (List.hd date) in
+  let month = int_of_string (List.nth date 1) in
+  let day = int_of_string (List.nth date 2) in
+  let hour = int_of_string (List.hd time) in
+  let minute = int_of_string (List.nth time 1) in
+  let second = int_of_string (List.nth time 2) in
+  let price = float_of_string (List.nth splitcomma 4) in
+  let epoch =
+    second + (60 * minute) + (3600 * hour) + (86400 * (day - 1))
+  in
+  let epochjan12021 = 1609477200 in
+  (epochjan12021 + epoch, price)
+
 (** [get_price_time ()] is the pair (a, b) where a is the float
     describing the current Ethereum price in USD, and b is the string
     describing the date at which the Ether price was queried, in
