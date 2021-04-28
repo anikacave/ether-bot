@@ -65,10 +65,20 @@ let hl_data_of_json j =
     low = j |> member "low" |> to_float;
   }
 
+(* Helper function for formatting the date. If invalid date error is
+   caught in query function *)
 let date_format date =
   let m_d_y = String.split_on_char '/' date in
   List.nth m_d_y 2 ^ "-" ^ List.nth m_d_y 0 ^ "-" ^ List.nth m_d_y 1
 
+(* Makes a query to return the extreme high or low price of an ether ETF
+   on a given date. Throws query failed if the request fails or an
+   invalid date is given. If the request fails with a valid date it
+   throws a different error than if the query failed due to internet or
+   connection issues and is dealt with under the error messages. The
+   extreme parameter is either High or Low depending if the high or low
+   value from that day is being searched for. The parameter date is in
+   the form MM/DD/YYYY *)
 let get_ext (ext : extreme) (date : string) =
   try
     let date_formatted = date_format date in
@@ -95,10 +105,13 @@ let get_ext (ext : extreme) (date : string) =
     match ext with High -> vals.high | Low -> vals.low
   with
   | Failure a when a = "resolution failed: name resolution failed" ->
-    raise
-      (Query_Failed
-         "Something went wrong. Check your internet connection.")
+      raise
+        (Query_Failed
+           "Something went wrong. Check your internet connection.")
+  | Failure s -> raise (Query_Failed "FAILURE: invalid date or weekend")
 
+(* Gets the historical high price at given date in format MM/DD/YYYY *)
 let get_historical_high date = get_ext High date
 
+(* Gets the historical low price at given date in format MM/DD/YYYY *)
 let get_historical_low date = get_ext Low date

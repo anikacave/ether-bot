@@ -4,10 +4,10 @@
     @throws Query_Failed *)
 val get_cur_price : unit -> string * string
 
-(* Gets the historical high price at given date in format MM/DD/YYY *)
+(* Gets the historical high price at given date in format MM/DD/YYYY *)
 val get_historical_high : string -> float
 
-(* Gets the historical low price at given date in format MM/DD/YYY *)
+(* Gets the historical low price at given date in format MM/DD/YYYY *)
 val get_historical_low : string -> float
 
 (* if a query to etherscan.io fails, Query_Failed will be raised with
