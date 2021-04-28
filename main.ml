@@ -93,20 +93,15 @@ let open_data_csv filename =
     () )
   else print_fmt "Can not present data\n"
 
-(** [reformat_user_timestamp s] is the csv-friendly timestamp, derived
-    from input timestamp s. If s is not in the format <[m]m/[d]d/yyyy>,
-    raises [Malformed_date] exception*)
-let reformat_user_timestamp s =
-  try
-    match Stringext.full_split s '/' with
-    | [ m; "/"; d; "/"; y ] ->
-        format_date
-          (int_of_string m - 1)
-          (int_of_string d) (int_of_string y)
-    | _ ->
-        raise (Malformed_date "Input date not in form <[m]m/[d]d/yyyy>")
-  with Invalid_date s ->
-    raise (Malformed_date ("Incorrectly formated date: " ^ s))
+(* this is not relevant right now b/c high and low from API (**
+   [reformat_user_timestamp s] is the csv-friendly timestamp, derived
+   from input timestamp s. If s is not in the format <[m]m/[d]d/yyyy>,
+   raises [Malformed_date] exception*) let reformat_user_timestamp s =
+   try match Stringext.full_split s '/' with | [ m; "/"; d; "/"; y ] ->
+   format_date (int_of_string m - 1) (int_of_string d) (int_of_string y)
+   | _ -> raise (Malformed_date "Input date not in form
+   <[m]m/[d]d/yyyy>") with Invalid_date s -> raise (Malformed_date
+   ("Incorrectly formated date: " ^ s)) *)
 
 let quit_prog un =
   ( try
@@ -137,6 +132,8 @@ let rec recieve_cmds () =
         print_fmt (formatted_str_price_time () ^ "\n") |> recieve_cmds
     | [ "2" ] | [ "show"; "wealth" ] ->
         print_show_wealth 0.0 0.0 0.0 true;
+        print_wealth_cmds ();
+        (* don't erase screen *)
         recieve_wealth_cmds 0.0 0.0 0.0
     | [ "3" ] | [ "open"; "data" ] ->
         open_data_csv filename |> recieve_cmds
@@ -162,24 +159,26 @@ let rec recieve_cmds () =
         recieve_cmds ()
     | [ "7"; s ] | [ "price"; "high"; s ] -> (
         try
-          let time = reformat_user_timestamp s in
-          match time with
-          | t ->
+          (* let time = reformat_user_timestamp s in *)
+          match s with
+          | s ->
               print_fmt
-                ( "You requested the high price from: " ^ t
-                ^ ".\nCommand not currently available\n" );
+                ( "High price from " ^ s ^ ": "
+                ^ string_of_float (get_historical_high s)
+                ^ "\n" );
               recieve_cmds ()
         with Malformed_date s ->
           print_fmt (s ^ "\n");
           recieve_cmds () )
     | [ "8"; s ] | [ "price"; "low"; s ] -> (
         try
-          let time = reformat_user_timestamp s in
-          match time with
-          | t ->
+          (* let time = reformat_user_timestamp s in *)
+          match s with
+          | s ->
               print_fmt
-                ( "You requested the low price from: " ^ t
-                ^ ".\nCommand not currently available\n" );
+                ( "Low price from " ^ s ^ ": "
+                ^ string_of_float (get_historical_low s)
+                ^ "\n" );
               recieve_cmds ()
         with Malformed_date s ->
           print_fmt (s ^ "\n");
@@ -201,11 +200,15 @@ and print_show_wealth ether_amt ether_wth ether_spt erase_screen =
     ANSITerminal.(erase Screen);
     ANSITerminal.set_cursor 1 1 )
   else ();
-  print_fmt "WEALTH ~ COMMANDS\n";
+  print_fmt "WEALTH\n";
   print_fmt ("You own " ^ string_of_float ether_amt ^ " Ether\n");
   print_fmt ("Worth: " ^ string_of_float ether_wth ^ "\n");
-  print_fmt ("Spent: " ^ string_of_float ether_spt ^ "\n");
-  print_fmt "Would you like to...\n";
+  print_fmt ("Spent: " ^ string_of_float ether_spt ^ "\n")
+
+and print_wealth_cmds un =
+  (* doesn't have a clear screen param b/c is always called after "help"
+     or after showing the wealth *)
+  print_fmt "COMMANDS\n";
   print_fmt "[0] - [quit]                             : Quit program\n";
   print_fmt
     "[1 <ff.ff>] - [buy <ff.ff>]              : Buy <ff.ff> Ether\n";
@@ -249,11 +252,13 @@ and recieve_wealth_cmds ether_amt ether_wth ether_spt =
   | [ "3" ] | [ "home" ] ->
       print_cmds true;
       recieve_cmds ()
+  | [ "help" ] | [ "Help" ] ->
+      print_wealth_cmds ();
+      recieve_wealth_cmds ether_amt ether_wth ether_spt
   | _ ->
       print_fmt
         "I could not understand your choice of command. Please try \
          again, or type [help]\n";
-      print_show_wealth ether_amt ether_wth ether_spt false;
       recieve_wealth_cmds ether_amt ether_wth ether_spt
 
 (** [yn_start ()] prompts user if they mean to enter the bot, calls
