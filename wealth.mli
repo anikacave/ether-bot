@@ -26,23 +26,23 @@ val ether_own : unit -> amount_ether
 
 (** [ether_own_add amt_ether] updates the log file to reflect recent
     Ether purchase*)
-val ether_own_add : amount_ether -> amount_ether
+val ether_own_add : amount_ether -> unit
 
 (** [ether_own_sub amt_ether] updates the log file to reflect recent
     Ether sell*)
-val ether_own_sub : amount_ether -> amount_ether
+val ether_own_sub : amount_ether -> unit
 
 (** [ether_spent ()] gives the current money spent on Ether owned by the
     user, based on historical [prices] of individual Ether in store*)
 val ether_spent : unit -> spent
 
 (** [ether_spent_add amt_ether cur_price] updates the log file to
-    reflect recent Ether purchases. Updates the spent of ether in stores*)
-val ether_spent_add : amount_ether -> price -> spent
+    reflect recent Ether purchases. Updates the spent of ether in log*)
+val ether_spent_add : amount_ether -> price -> unit
 
 (** [ether_spent_sub amt_ether cur_price] updates the log file to
-    reflect recent Ether sells. Updates the spent of ether in stores*)
-val ether_spent_sub : amount_ether -> price -> spent
+    reflect recent Ether sells. Updates the spent of ether in log*)
+val ether_spent_sub : amount_ether -> price -> unit
 
 (** [ether_worth cur_price] is the worth of [ether_own ()], which is the
     amount of ether in stores times the current_price*)

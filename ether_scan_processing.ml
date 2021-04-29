@@ -105,6 +105,8 @@ let get_price_time un =
   match pair with
   | price, time -> (convert_cur_price price, convert_time_stamp time)
 
+let just_cur_price un = 
+  fst (get_price_time ())
 (** [formatted_str_price_time ()] returns a cleanly formatted string of
     the form "Current Price: <price>\nAt Time: <time stamp>" (TBD), for
     printing to UI*)

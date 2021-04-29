@@ -1,12 +1,9 @@
 open Ether_csv
 
 (* have to open Ether_csv instead of main, opening main runs UI*)
-let filename = "ether_data.csv"
-
-let bot_filename = "ether_data_bot_time.csv"
 
 (** [write_to_csv ()] is a script that continually writes current Ether
-    prices to [filename]*)
+    prices to [filename], in usr_friendly format*)
 let rec write_to_csv
     (filename : filename)
     (usr_friendly : readable_format) =
