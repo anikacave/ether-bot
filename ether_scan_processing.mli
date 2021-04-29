@@ -36,3 +36,6 @@ val csv_bot_price_time : unit -> string
 (** [csv_readable_price_time ()] returns a CSV-friendly string of the
     form ["hh:mm:ss monday day year, price"]*)
 val csv_readable_price_time : unit -> string
+
+(** [just_cur_price ()] returns just the float of the current price *)
+val just_cur_price : unit -> float

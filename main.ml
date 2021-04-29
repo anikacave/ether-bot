@@ -8,10 +8,6 @@ open Wealth
    Ether_scan_query *)
 exception File_not_found
 
-(** An exception that may be raised when estimating how much you would
-    have made*)
-exception Est_price_exc of string
-
 (** An exception when the user's input date is not of the form
     <mm/dd/yyyy>*)
 exception Malformed_date of string
@@ -23,6 +19,34 @@ let unreadable_pid = ref 0
 let filename = "ether_data.csv"
 
 let bot_filename = "ether_data_bot.csv"
+
+(** [check_date mm_dd_yyyy] checks the date is valid, date input as
+    <mm/dd/yyyy>. As in, not before 1900 and not after 2021, valid
+    month, valid date, etc *)
+let check_date mm_dd_yyyy =
+  let cur_yr = Unix.(localtime (time ())).tm_year + 1900 in
+  let cur_month = Unix.(localtime (time ())).tm_mon + 1 in
+  let cur_day = Unix.(localtime (time ())).tm_mday in
+  match
+    List.map
+      (fun i -> int_of_string i)
+      (List.filter
+         (fun s -> s <> "/")
+         (Stringext.full_split mm_dd_yyyy '/'))
+  with
+  | [ month; day; year ] ->
+      if
+        year < 1900 || month < 1 || month > 12 || day < 1 || day > 31
+        || (month == 4 || month == 6 || month == 9 || month == 11)
+           && day > 30
+        || (year mod 4 == 0 && month == 2 && day > 29)
+        (* don't forget to test leap years! *)
+        || (month == 2 && day > 28)
+        || year > cur_yr
+        || (year == cur_yr && (month > cur_month || day > cur_day))
+      then raise (Malformed_date "invalid date")
+      else mm_dd_yyyy
+  | _ -> raise (Malformed_date "invalid date")
 
 (* The initial price of Ether at the start of the session*)
 let init_price = fst (get_price_time ())
@@ -48,18 +72,21 @@ let str_how_much_would_have_made () =
 (* ANSITerminal formatting*)
 let print_fmt str = ANSITerminal.(print_string [ magenta ] str)
 
-(* (** [update_create_csv ()] deals with making the csv if it does not
-   exist, else just updates it. The name is: ether_data.csv*) let
-   update_create_csv un = if Sys.file_exists filename then
-   safe_update_csv filename true else create_csv filename true *)
+(* NOW THIS IS IN csv_writer.ml : (** [update_create_csv ()] deals with
+   making the csv if it does not exist, else just updates it. The name
+   is: ether_data.csv*) let update_create_csv un = if Sys.file_exists
+   filename then safe_update_csv filename true else create_csv filename
+   true *)
 
 (** [print_cmds ()] prints the possible commands *)
 let print_cmds erase_screen =
-  (if erase_screen then ANSITerminal.(erase Screen));
-  if erase_screen then ANSITerminal.set_cursor 1 1;
+  if erase_screen then (
+    ANSITerminal.(
+      erase Screen;
+      set_cursor 1 1) )
+  else ();
   print_fmt "HOME ~ COMMANDS:\n";
   print_fmt "[0] - [quit]                             : quit program\n";
-
   print_fmt
     "[1] - [current price]                    : get the current USD \
      price of Ether\n";
@@ -85,8 +112,8 @@ let print_cmds erase_screen =
   print_fmt
     "[9] - [help]                             : Redisplay commands\n"
 
-(** [open_data_csv] opens [ether_data.csv] if it exists, else it prints
-    \"Can not present data\""*)
+(** [open_data_csv] opens [ether_data.csv] in terminal if it exists,
+    else it prints \"Can not present data\""*)
 let open_data_csv filename =
   if Sys.file_exists filename then (
     Unix.system ("cat " ^ filename);
@@ -103,18 +130,19 @@ let open_data_csv filename =
    <[m]m/[d]d/yyyy>") with Invalid_date s -> raise (Malformed_date
    ("Incorrectly formated date: " ^ s)) *)
 
+(* [quit_prog un] is the last method run in whole script; makes sure to
+   kill the two processes spawned when the program starts up*)
 let quit_prog un =
-  ( try
-      let str = str_how_much_would_have_made () in
-      print_fmt (str ^ "\n")
-    with Est_price_exc s -> print_fmt (s ^ "\n") );
+  let str = str_how_much_would_have_made () in
+  print_fmt (str ^ "\n");
   kill !readable_pid 9;
   (*kill the bot writing to ether_csv*)
   kill !unreadable_pid 9;
+  (*kill the bot writing to ether_bot.csv*)
   print_fmt "Quitting...\n"
 
-(** [recieve_cmds ()] is a REPL that displays the possible commands,
-    reroutes the user to another method, and quits upon "q"*)
+(** [recieve_cmds ()] is a REPL that reroutes the user to another
+    method, and quits upon "q"*)
 let rec recieve_cmds () =
   print_string "> ";
   try
@@ -131,10 +159,13 @@ let rec recieve_cmds () =
         (* SHOULD NOT BE UPDATING, THE BOT DOES THAT NOW!*)
         print_fmt (formatted_str_price_time () ^ "\n") |> recieve_cmds
     | [ "2" ] | [ "show"; "wealth" ] ->
-        print_show_wealth 0.0 0.0 0.0 true;
+        print_show_wealth true;
+        (* the params are just temporary; later once wealth.ml is
+           developed it'll be like "ether_amt_get", "ether_worth_get",
+           "ether_spent_get"*)
         print_wealth_cmds ();
         (* don't erase screen *)
-        recieve_wealth_cmds 0.0 0.0 0.0
+        recieve_wealth_cmds ()
     | [ "3" ] | [ "open"; "data" ] ->
         open_data_csv filename |> recieve_cmds
     | [ "4" ] | [ "open"; "bot"; "data" ] ->
@@ -158,31 +189,23 @@ let rec recieve_cmds () =
         );
         recieve_cmds ()
     | [ "7"; s ] | [ "price"; "high"; s ] -> (
-        try
-          (* let time = reformat_user_timestamp s in *)
-          match s with
-          | s ->
-              print_fmt
-                ( "High price from " ^ s ^ ": "
-                ^ string_of_float (get_historical_high s)
-                ^ "\n" );
-              recieve_cmds ()
-        with Malformed_date s ->
-          print_fmt (s ^ "\n");
-          recieve_cmds () )
+        match check_date s with
+        (* query_failed caught below *)
+        | s ->
+            print_fmt
+              ( "High price from " ^ s ^ ": "
+              ^ string_of_float (get_historical_high s)
+              ^ "\n" );
+            recieve_cmds () )
     | [ "8"; s ] | [ "price"; "low"; s ] -> (
-        try
-          (* let time = reformat_user_timestamp s in *)
-          match s with
-          | s ->
-              print_fmt
-                ( "Low price from " ^ s ^ ": "
-                ^ string_of_float (get_historical_low s)
-                ^ "\n" );
-              recieve_cmds ()
-        with Malformed_date s ->
-          print_fmt (s ^ "\n");
-          recieve_cmds () )
+        match check_date s with
+        (* query_failed caught below *)
+        | s ->
+            print_fmt
+              ( "Low price from " ^ s ^ ": "
+              ^ string_of_float (get_historical_low s)
+              ^ "\n" );
+            recieve_cmds () )
     | [ "9" ] | [ "help" ] | [ "Help" ] ->
         print_cmds false;
         recieve_cmds ()
@@ -191,20 +214,32 @@ let rec recieve_cmds () =
           "I could not understand your choice of command. Please try \
            again, or type [help]\n";
         recieve_cmds ()
-  with Query_Failed s ->
-    print_fmt (s ^ "\n");
-    recieve_cmds ()
+  with
+  | Query_Failed s ->
+      print_fmt (s ^ "\n");
+      recieve_cmds ()
+  | Malformed_date s ->
+      print_fmt (s ^ "\n");
+      recieve_cmds ()
 
-and print_show_wealth ether_amt ether_wth ether_spt erase_screen =
+(** [print_show_wealth erase_screen] Displays the user's Ether wealth.
+    The parameters are printed from the CSV. All calculations are done
+    in [recieve_wealth_commands]*)
+and print_show_wealth erase_screen =
   if erase_screen then (
     ANSITerminal.(erase Screen);
     ANSITerminal.set_cursor 1 1 )
   else ();
   print_fmt "WEALTH\n";
-  print_fmt ("You own " ^ string_of_float ether_amt ^ " Ether\n");
-  print_fmt ("Worth: " ^ string_of_float ether_wth ^ "\n");
-  print_fmt ("Spent: " ^ string_of_float ether_spt ^ "\n")
+  print_fmt ("You own " ^ string_of_float (ether_own ()) ^ " Ether\n");
+  print_fmt
+    ( "Worth: "
+    ^ string_of_float (ether_worth (just_cur_price ()))
+    ^ "\n" );
+  print_fmt ("Spent: " ^ string_of_float (ether_spent ()) ^ "\n")
 
+(** [print_wealth_cmds un] Just displays the commands in the Wealth
+    screen to the user*)
 and print_wealth_cmds un =
   (* doesn't have a clear screen param b/c is always called after "help"
      or after showing the wealth *)
@@ -217,7 +252,10 @@ and print_wealth_cmds un =
   print_fmt
     "[3] - [home]                             : Return to home\n"
 
-and recieve_wealth_cmds ether_amt ether_wth ether_spt =
+(** [recieve_wealth_cmds un] is a REPL that reads user's commands
+    (specified in [print_wealth_cmds]) and redirects user to function
+    that carries out that command*)
+and recieve_wealth_cmds un =
   print_string "> ";
   match
     List.filter
@@ -228,38 +266,37 @@ and recieve_wealth_cmds ether_amt ether_wth ether_spt =
   | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
       quit_prog ()
   | [ "1"; flt ] | [ "buy"; flt ] -> (
-      let amt_buy = float_of_string flt in
+      let amt_ether = float_of_string flt in
+      (* since we bought, update the csv accordingly *)
       try
-        print_show_wealth (ether_own_add amt_buy) (ether_worth 0.0)
-          (ether_spent_add amt_buy 0.0)
-          false;
-        recieve_wealth_cmds ether_amt ether_wth ether_spt
+        ether_own_add amt_ether;
+        ether_spent_add amt_ether (just_cur_price ());
+        print_show_wealth false;
+        recieve_wealth_cmds ()
       with InvalidEtherAmount s ->
         print_fmt (s ^ "\n");
-        recieve_wealth_cmds ether_amt ether_wth ether_spt )
+        recieve_wealth_cmds () )
   | [ "2"; flt ] | [ "sell"; flt ] -> (
-      let amt_sell = float_of_string flt in
+      let amt_ether = float_of_string flt in
       try
-        print_show_wealth
-          (ether_own_sub amt_sell)
-          (ether_worth 0.0)
-          (ether_spent_sub amt_sell 0.0)
-          false;
-        recieve_wealth_cmds ether_amt ether_wth ether_spt
+        ether_own_sub amt_ether;
+        ether_spent_sub amt_ether (just_cur_price ());
+        print_show_wealth false;
+        recieve_wealth_cmds ()
       with InvalidEtherAmount s ->
         print_fmt (s ^ "\n");
-        recieve_wealth_cmds ether_amt ether_wth ether_spt )
+        recieve_wealth_cmds () )
   | [ "3" ] | [ "home" ] ->
       print_cmds true;
       recieve_cmds ()
   | [ "help" ] | [ "Help" ] ->
       print_wealth_cmds ();
-      recieve_wealth_cmds ether_amt ether_wth ether_spt
+      recieve_wealth_cmds ()
   | _ ->
       print_fmt
         "I could not understand your choice of command. Please try \
          again, or type [help]\n";
-      recieve_wealth_cmds ether_amt ether_wth ether_spt
+      recieve_wealth_cmds ()
 
 (** [yn_start ()] prompts user if they mean to enter the bot, calls
     [prompt_cmds ()] if "Y" and quits if "N". Repeats until desired
