@@ -3,6 +3,7 @@ open Ether_csv
 open Ether_scan_query
 open Unix
 open Wealth
+open Indicators
 
 (* Here we should open Ether_csv, Ether_scan_processing,
    Ether_scan_query *)
@@ -110,7 +111,10 @@ let print_cmds erase_screen =
     "[8 <mm/dd/yyyy>] - [price low mm/dd/yyyy]    : Ether high from \
      <mm/dd/yyyy>\n";
   print_fmt
-    "[9] - [help]                             : Redisplay commands\n"
+    "[9] - [help]                             : Redisplay commands\n";
+  print_fmt
+    "[DEMO sma] / [DEMO ema] / [DEMO stoch] / [DEMO macd] : For \
+     demonstration purposes only\n"
 
 (** [open_data_csv] opens [ether_data.csv] in terminal if it exists,
     else it prints \"Can not present data\""*)
@@ -209,6 +213,36 @@ let rec recieve_cmds () =
     | [ "9" ] | [ "help" ] | [ "Help" ] ->
         print_cmds false;
         recieve_cmds ()
+    | [ "DEMO"; indicator ] -> (
+        match indicator with
+        | "sma" ->
+            print_fmt
+              ( "sma: "
+              ^ string_of_float (sma_accessible "ETH_1min_sample.txt")
+              ^ "\n" )
+            |> recieve_cmds
+        | "ema" ->
+            print_fmt
+              ( "ema: "
+              ^ string_of_float (ema_accessible "ETH_1min_sample.txt")
+              ^ "\n" )
+            |> recieve_cmds
+        | "stoch" ->
+            print_fmt
+              ( "stoch: "
+              ^ string_of_float (stoch_accessible "ETH_1min_sample.txt")
+              ^ "\n" )
+            |> recieve_cmds
+        | "macd" ->
+            print_fmt
+              ( "macd: "
+              ^ string_of_float (macd_accessible "ETH_1min_sample.txt")
+              ^ "\n" )
+            |> recieve_cmds
+        | _ ->
+            print_fmt
+              "could not understand. Please try again or type [help]";
+            recieve_cmds () )
     | _ ->
         print_fmt
           "I could not understand your choice of command. Please try \
