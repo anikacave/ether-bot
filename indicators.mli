@@ -35,3 +35,10 @@ val adx : dataset -> float
 val macd : dataset -> float
 
 (* Custom indicators coming soon!*)
+
+(* for demo purposes *)
+val sma_accessible : string -> float
+val ema_accessible : string -> float
+val stoch_accessible : string -> float
+val macd_accessible : string -> float
+
