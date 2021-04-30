@@ -76,7 +76,7 @@ let rec sum d = List.fold_left (fun acc x -> snd x +. acc) 0. d
 (* returns a list containing the average price within each period the
    length of the list should be num_intervals *)
 let rec avgs_in_period_list d period time =
-  if List.length d |> List.nth d |> fst > time then []
+  if (List.length d - 1) |> List.nth d |> fst > time then []
   else
     let trim_list = trim d (time - period) time in
     let recurse = avgs_in_period_list d period (time - period) in
@@ -94,7 +94,7 @@ let rec sma d period num_intervals time =
   let averages = avgs_in_period_list trimmed_data period time in
   (* list of averages*)
   List.fold_left ( +. ) 0. averages
-  |> ( /. ) (float_of_int (List.length averages))
+  /.  (float_of_int (List.length averages))
 
 (** TODO make sma and ema more consistent by trimming *)
 
@@ -138,13 +138,17 @@ let adx d = failwith "unimplemented"
 (* calculates macd by comparing 12 day vs 26 day ema*)
 let macd d = ema d 12 12 2. -. ema d 26 26 2.
 
+(* let sma_accessible file_name =
+  let d = from_csv readable_to_unix file_name in
+  if d = [] then 0. else sma d 86400 10 (fst (List.hd d)) *)
+
 let sma_accessible file_name =
   let d = from_csv readable_to_unix file_name in
-  if d = [] then 0. else sma d 86400 10 (fst (List.hd d))
+  sma d 3600 10 1610686740
 
 let ema_accessible file_name =
   let d = from_csv readable_to_unix file_name in
-  ema d 86400 10 2.
+  ema d 3600 10 2.
 
 let stoch_accessible file_name =
   let d = from_csv readable_to_unix file_name in
