@@ -145,12 +145,24 @@ let rec ema d period num_periods smoothing =
     (snd (List.hd d) *. k)
     +. (ema (List.tl d) period (num_periods - 1) smoothing *. (1. -. k))
 
-let rec low_price d acc =
-  match d with
-  | [] -> acc
-  | (_, price) :: t ->
-      if price < acc then low_price t price else low_price t acc
+type op = Low | High | Mean
 
+
+let analyze d op =
+  match op with
+    | Low -> Array.fold_left min 0. d
+    | High -> Array.fold_left max 0. d
+    | Mean -> Array.fold_left (+.) 0. d 
+      /. float_of_int (Array.length d)
+
+let rec low_price d =
+  let low = ref (-1.) in
+  for i=0 to Array.length d - 1 do
+    if d.(i) < !low then 
+      low := d.(i)
+    else ();
+  done;
+  low
 let rec high_price d acc =
   match d with
   | [] -> acc
