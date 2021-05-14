@@ -4,10 +4,10 @@
     Requires: the time is ordered from newest to oldest *)
 
 (* represents the raw data to calculate indicators from *)
-type dataset = int * float list
+type dataset
 
 
-(* parses a csv file and constructs dataset 
+(*  parses a csv file and constructs a dataset 
     formatter describes how to parse each line into a tuple
     [from_csv formatter file_name] is a dataset from the file*)
 val from_csv : (string -> (int * float) option) -> string -> dataset
@@ -16,22 +16,26 @@ val from_csv : (string -> (int * float) option) -> string -> dataset
 val from_tuple_list : (int * float list) -> dataset
 
 (* returns a subset of the dataset from 
-    [trim dataset begin end] is a dataset including datapoints 
-    between begin and end inclusive *)
+    [trim dataset begin_time end_time] is a dataset including datapoints 
+    between begin and end. If the dataset contains datapoints for
+    begin and end, then they will be included. If not, the 
+    next most recent datapoint will be included (round down).
+    {param} begin_time is in epoch time
+    {param} end_time is in epoch time  *)
 val trim : dataset -> int -> int -> dataset
 
 (* [sma dataset period] is the SMA of the dataset 
-    given the desired period*)
+    given the desired period in seconds *)
 val sma : dataset -> int -> float
 
 (* [stoch data] is the stochastic oscillator (indicator)
-    with lookback period of 14 days and with closing time of ~11:59*)
+    with a lookback period of 14 days and with closing time of ~11:59*)
 val stoch : dataset -> float
 
 (* calculates adx *)
 val adx : dataset -> float
 
-(* calculates macd *)
+(* calculates macd. comparing 12 day vs 26 day ema *)
 val macd : dataset -> float
 
 (* Custom indicators coming soon!*)
