@@ -8,7 +8,7 @@ type worth = float
 
 type spent = float
 
-type liquid_rev = float
+type revenue = float
 
 exception InvalidEtherAmount of string
 
@@ -20,7 +20,7 @@ let ref_worth = ref 0.
 
 let ref_spent = ref 0.
 
-let ref_liquid_rev = ref 0.
+let ref_rev = ref 0.
 
 let fname = "ether_wealth.csv"
 
@@ -51,8 +51,8 @@ let create_csv (file : filename) =
   Stdlib.close_out buff
 
 (** [update_csv amt_ether cur_price bought] updates [ether_wealth.csv]
-    based on whether the user bought or sold [amt_ether]*)
-let update_csv amt_ether cur_price bought =
+    by pasting in the values of our refs into the csv*)
+let update_csv un =
   if Sys.file_exists fname then () else create_csv fname
 
 (** [scan_csv_for value fname] returns the float value of
@@ -90,19 +90,38 @@ let initialize_wealth un =
   ref_own := scan_csv_for "own" fname;
   ref_worth := scan_csv_for "worth" fname;
   ref_spent := scan_csv_for "spent" fname;
-  ref_liquid_rev := scan_csv_for "revenue" fname
+  ref_rev := scan_csv_for "revenue" fname
 
 (* done with csv stuff *)
 
+(** [update_values amt_ether cur_price bought] updates the refs [own],
+    [worth], [spent], and [revenue], and returns a tuple of the new
+    values*)
+let update_values amt_ether cur_price bought =
+  if bought then (
+    ref_own := !ref_own +. amt_ether;
+    ref_worth := !ref_own *. cur_price;
+    ref_spent := !ref_spent +. (amt_ether *. cur_price);
+    (* ref_rev stays the same*)
+    (!ref_own, !ref_worth, !ref_spent, !ref_rev) )
+  else (
+    ref_own := !ref_own -. amt_ether;
+    ref_worth := !ref_own *. cur_price;
+    ref_rev := !ref_rev +. (amt_ether *. cur_price);
+    (* ref_spent stays the same*)
+    (!ref_own, !ref_worth, !ref_spent, !ref_rev) )
+
 let wealth_bought amt_ether cur_price =
-  update_csv amt_ether cur_price true;
-  (0.0, 0.0, 0.0, 0.0)
+  let to_return = update_values amt_ether cur_price true in
+  update_csv ();
+  to_return
 
 let wealth_sold amt_ether cur_price =
-  update_csv amt_ether cur_price false;
-  (0.0, 0.0, 0.0, 0.0)
+  let to_return = update_values amt_ether cur_price false in
+  update_csv ();
+  to_return
 
-let ether_own un = 0.0
+let ether_own un = !ref_own
 
 let ether_own_add amt =
   if amt > 0. then amt
@@ -118,7 +137,7 @@ let ether_own_sub amt =
     raise
       (InvalidEtherAmount "cannot sell a non-positive amount of ether")
 
-let ether_spent un = 0.0
+let ether_spent un = !ref_spent
 
 let ether_spent_add amt cur_price =
   if amt > 0. then amt
@@ -136,9 +155,9 @@ let ether_spent_sub amt cur_price =
 
 (** [ether_worth cur_price] is the worth of [ether_own ()], which is the
     amount of ether in stores times the current_price*)
-let ether_worth (cur_price : price) : worth = 0.0
+let ether_worth (cur_price : price) : worth = !ref_worth
 
-let ether_liquid_rev un = 0.0
+let ether_liquid_rev un = !ref_rev
 
 let ether_liquid_rev_add amt cur_price =
   if amt > 0. then amt

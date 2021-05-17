@@ -16,13 +16,17 @@ type spent = float
 
 (** How much the user has made by selling previously purchased Ether. As
     usual, Net Profit = Revenue - Cost (Spent)*)
-type liquid_rev = float
+type revenue = float
 
 (** When Ether specified is greater than 99.99, or 0 *)
 exception InvalidEtherAmount of string
 
 (** When user tries to sell more Ether than they posess *)
 exception InsufficientEtherInOwn of string
+
+(** [initialize_wealth un] creates the csv log if it does not exist and
+    updates the value refs *)
+val initialize_wealth : unit -> unit
 
 (** [ether_own ()] gives the current amount of Ether, which is between 0
     and 99.99, owned by the user *)
@@ -39,19 +43,19 @@ val ether_worth : price -> worth
 (** [ether_liquid_rev ()] gives the net revenue made from seling
     previously purchased Ether, based on historical prices of individual
     Ether + when they were sold*)
-val ether_liquid_rev : unit -> liquid_rev
+val ether_liquid_rev : unit -> revenue
 
 (** [wealth_bought amt cur_price] returns the updated values of [own],
     [worth], [spent] and [liquid_rev] SIDE EFFECT: updates the log file
     [ether_wealth.csv]*)
 val wealth_bought :
-  amount_ether -> price -> amount_ether * worth * spent * liquid_rev
+  amount_ether -> price -> amount_ether * worth * spent * revenue
 
 (** [wealth_sold amt cur_price] returns the updated values of [own],
     [worth], [spent] and [liquid_rev] SIDE EFFECT: updates the log file
     [ether_wealth.csv]*)
 val wealth_sold :
-  amount_ether -> price -> amount_ether * worth * spent * liquid_rev
+  amount_ether -> price -> amount_ether * worth * spent * revenue
 
 (** [ether_own_add amt_ether] updates the log file to reflect recent
     Ether purchase, and returns the new amount of ether owned*)
@@ -75,4 +79,4 @@ val ether_spent_sub : amount_ether -> price -> spent
 
 (** [ether_liquid_rev_add amt_ether] updates the log file's liquid_rev
     to reflect a recent sale of ether, and returns the new value*)
-val ether_liquid_rev_add : amount_ether -> price -> liquid_rev
+val ether_liquid_rev_add : amount_ether -> price -> revenue
