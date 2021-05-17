@@ -303,8 +303,9 @@ and recieve_wealth_cmds un =
       let amt_ether = float_of_string flt in
       (* since we bought, update the csv accordingly *)
       try
-        ether_own_add amt_ether;
-        ether_spent_add amt_ether (just_cur_price ());
+        let own, worth, spent, liq_rev =
+          wealth_bought amt_ether (just_cur_price ())
+        in
         print_show_wealth false;
         recieve_wealth_cmds ()
       with InvalidEtherAmount s ->
@@ -313,8 +314,9 @@ and recieve_wealth_cmds un =
   | [ "2"; flt ] | [ "sell"; flt ] -> (
       let amt_ether = float_of_string flt in
       try
-        ether_own_sub amt_ether;
-        ether_spent_sub amt_ether (just_cur_price ());
+        let own, worth, spent, liq_rev =
+          wealth_sold amt_ether (just_cur_price ())
+        in
         print_show_wealth false;
         recieve_wealth_cmds ()
       with InvalidEtherAmount s ->
