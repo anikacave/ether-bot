@@ -3,7 +3,8 @@ open Ether_csv
 open Ether_scan_query
 open Unix
 open Wealth
-open Indicators
+
+(* open Indicators *)
 
 (* Here we should open Ether_csv, Ether_scan_processing,
    Ether_scan_query *)
@@ -213,36 +214,19 @@ let rec recieve_cmds () =
     | [ "9" ] | [ "help" ] | [ "Help" ] ->
         print_cmds false;
         recieve_cmds ()
-    | [ "DEMO"; indicator ] -> (
-        match indicator with
-        | "sma" ->
-            print_fmt
-              ( "sma: "
-              ^ string_of_float (sma_accessible "ETH_1min_sample.txt")
-              ^ "\n" )
-            |> recieve_cmds
-        | "ema" ->
-            print_fmt
-              ( "ema: "
-              ^ string_of_float (ema_accessible "ETH_1min_sample.txt")
-              ^ "\n" )
-            |> recieve_cmds
-        | "stoch" ->
-            print_fmt
-              ( "stoch: "
-              ^ string_of_float (stoch_accessible "ETH_1min_sample.txt")
-              ^ "\n" )
-            |> recieve_cmds
-        | "macd" ->
-            print_fmt
-              ( "macd: "
-              ^ string_of_float (macd_accessible "ETH_1min_sample.txt")
-              ^ "\n" )
-            |> recieve_cmds
-        | _ ->
-            print_fmt
-              "could not understand. Please try again or type [help]";
-            recieve_cmds () )
+    | [ "DEMO"; indicator ] ->
+        (* match indicator with | "sma" -> print_fmt ( "sma: " ^
+           string_of_float (sma_accessible "ETH_1min_sample.txt") ^ "\n"
+           ) |> recieve_cmds | "ema" -> print_fmt ( "ema: " ^
+           string_of_float (ema_accessible "ETH_1min_sample.txt") ^ "\n"
+           ) |> recieve_cmds | "stoch" -> print_fmt ( "stoch: " ^
+           string_of_float (stoch_accessible "ETH_1min_sample.txt") ^
+           "\n" ) |> recieve_cmds | "macd" -> print_fmt ( "macd: " ^
+           string_of_float (macd_accessible "ETH_1min_sample.txt") ^
+           "\n" ) |> recieve_cmds | _ -> *)
+        print_fmt
+          "could not understand. Please try again or type [help]";
+        recieve_cmds ()
     | _ ->
         print_fmt
           "I could not understand your choice of command. Please try \
@@ -358,6 +342,9 @@ let rec yn_start () =
           [| "./csv_writer.byte"; "ether_data_bot.csv"; "false" |]
           (* last param is if the data needs to be readable*)
           stdin stdout stderr;
+      (* start the wealth module (update refs, create log if it doesn't
+         exist [should always exist])*)
+      Wealth.initialize_wealth ();
       recieve_cmds ()
   | _ ->
       print_fmt

@@ -14,6 +14,14 @@ exception InvalidEtherAmount of string
 
 exception InsufficientEtherInOwn of string
 
+let ref_own = ref 0.
+
+let ref_worth = ref 0.
+
+let ref_spent = ref 0.
+
+let ref_liquid_rev = ref 0.
+
 let fname = "ether_wealth.csv"
 
 (* all the csv stuff that user doesn't need to know about *)
@@ -46,6 +54,43 @@ let create_csv (file : filename) =
     based on whether the user bought or sold [amt_ether]*)
 let update_csv amt_ether cur_price bought =
   if Sys.file_exists fname then () else create_csv fname
+
+(** [scan_csv_for value fname] returns the float value of
+    [own]/[worth]/[spent]/[revenue] (whichever string specified) located
+    in [fname]*)
+let scan_csv_for value fname =
+  let input_stream = open_in fname in
+  let rec scan un =
+    match
+      try Some (input_line input_stream) with End_of_file -> None
+    with
+    | None ->
+        Stdlib.close_in input_stream;
+        raise
+          (Failure
+             ( "could not initialize " ^ value ^ ", not found in "
+             ^ fname ))
+    | Some h ->
+        let vals = String.split_on_char ',' h in
+        if List.nth vals 0 = value then (
+          (* if you find a row w/ first entry the value you're looking
+             for *)
+          let close un = Stdlib.close_in input_stream in
+          close ();
+          float_of_string (List.nth vals 1)
+          (* then return the float beside it*) )
+        else scan ()
+  in
+  scan ()
+
+(** [initialize_wealth un] creates the csv log if it does not exist and
+    updates the value refs *)
+let initialize_wealth un =
+  if Sys.file_exists fname then () else create_csv fname;
+  ref_own := scan_csv_for "own" fname;
+  ref_worth := scan_csv_for "worth" fname;
+  ref_spent := scan_csv_for "spent" fname;
+  ref_liquid_rev := scan_csv_for "revenue" fname
 
 (* done with csv stuff *)
 
