@@ -3,8 +3,18 @@
 (* a list of tuples of epoch time and USD price from csv_data_bot
    Requires: the time is ordered from newest to oldest *)
 
-(* represents the raw data to calculate indicators from *)
-type dataset = (int * float) list
+(* AF: array of time & price pairs RI: all elements are sorted in
+   chronological order. No duplicate times *)
+type dataset = (int * float) array
+
+(* checks that the dataset is in chronological order with no dupes*)
+let rep_ok d : dataset =
+  for i = 0 to Array.length d - 2 do
+    if fst d.(i) > fst d.(i + 1) then
+      failwith "dataset rep invariant violated in indicators.ml"
+    else ()
+  done;
+  d
 
 let readable_to_unix str =
   let splitcomma = String.split_on_char ',' str in
@@ -36,6 +46,7 @@ let readable_to_unix str =
    parse each line into a tuple [from_csv formatter file_name] is a
    dataset from the file*)
 let from_csv parsing_fcn file_name =
+  (* TODO consider optimizing from O(2n) to O(n)*)
   let input_stream = open_in file_name in
   let rec scan acc =
     match
@@ -47,9 +58,9 @@ let from_csv parsing_fcn file_name =
     | Some h -> (
         match parsing_fcn h with
         | None -> acc |> scan
-        | Some x -> x :: acc |> scan)
+        | Some x -> x :: acc |> scan )
   in
-  scan []
+  scan [] |> Array.of_list
 
 (** a sample fcn to pass to from_csv*)
 let sample_fcn str =
@@ -61,28 +72,53 @@ let sample_fcn str =
   with Failure _ -> None
 
 (* constructs a dataset from a list of tuples *)
-let from_tuple_list (lst : (int * float) list) : dataset = lst
+let from_tuple_list (lst : (int * float) list) : dataset =
+  let length = List.length lst in
+  let arr = Array.make length (-1, -1.) in
+  assert false
+
+(* binary search index of the target in the dataset. If doesn't exist,
+   the lower index from where it would have been*)
+let index_of d target comp =
+  let rec helper low high =
+    let m = (low + high) / 2 in
+    if low <= high then
+      if comp d.(m) target < 0 then helper (m + 1) high
+      else if comp d.(m) target > 0 then helper low (m - 1)
+      else m
+    else m
+  in
+  let low = 0 in
+  let high = Array.length d - 1 in
+  helper low high
 
 (* returns a subset of the dataset from [trim dataset begin end] is a
    dataset including datapoints between begin and end INCLUSIVE begin
    and end should be in epoch time *)
 let rec trim (d : dataset) start finish : dataset =
-  let filter_fun x = fst x >= start && fst x <= finish in
-  List.filter filter_fun d
+  let comparator a b = b - fst a in
+  let ind1 = index_of d start comparator in
+  let ind2 = index_of d finish comparator in
+  let length = ind2 - ind1 + 1 in
+  let arr = Array.make length (-1, -1.) in
+  for i = 0 to length - 1 do
+    arr.(i) <- d.(ind1 + i)
+  done;
+  arr
 
 (* sum the prices in a dataset *)
-let rec sum d = List.fold_left (fun acc x -> snd x +. acc) 0. d
+let rec sum d = Array.fold_left (fun acc x -> snd x +. acc) 0. d
 
 (* returns a list containing the average price within each period the
-   length of the list should be num_intervals *)
+   length of the list should be num_intervals. Earlier averages are at
+   the head *)
 let rec avgs_in_period_list d period time =
-  if List.length d |> List.nth d |> fst > time then []
+  if fst d.(Array.length d - 1) > time then []
   else
-    let trim_list = trim d (time - period) time in
+    let trimmed = trim d (time - period) time in
     let recurse = avgs_in_period_list d period (time - period) in
-    if List.length trim_list = 0 then recurse
-    else
-      (sum trim_list /. float_of_int (List.length trim_list)) :: recurse
+    if Array.length trimmed = 0 then recurse
+    else (sum trimmed /. float_of_int (Array.length trimmed)) :: recurse
 
 (* [sma dataset period num_intervals time] is the SMA at time time of
    the dataset given the desired period and number of intervals to look
@@ -94,7 +130,7 @@ let rec sma d period num_intervals time =
   let averages = avgs_in_period_list trimmed_data period time in
   (* list of averages*)
   List.fold_left ( +. ) 0. averages
-  |> ( /. ) (float_of_int (List.length averages))
+  /. float_of_int (List.length averages)
 
 (** TODO make sma and ema more consistent by trimming *)
 
@@ -109,11 +145,23 @@ let rec ema d period num_periods smoothing =
     (snd (List.hd d) *. k)
     +. (ema (List.tl d) period (num_periods - 1) smoothing *. (1. -. k))
 
-let rec low_price d acc =
-  match d with
-  | [] -> acc
-  | (_, price) :: t ->
-      if price < acc then low_price t price else low_price t acc
+type op =
+  | Low
+  | High
+  | Mean
+
+let analyze d op =
+  match op with
+  | Low -> Array.fold_left min 0. d
+  | High -> Array.fold_left max 0. d
+  | Mean -> Array.fold_left ( +. ) 0. d /. float_of_int (Array.length d)
+
+let rec low_price d =
+  let low = ref (-1.) in
+  for i = 0 to Array.length d - 1 do
+    if d.(i) < !low then low := d.(i) else ()
+  done;
+  low
 
 let rec high_price d acc =
   match d with
@@ -125,12 +173,11 @@ let rec high_price d acc =
    [lookback] seconds from time [time] Note: this method performs no
    smoothing Requires: the given dataset has enough information to
    lookback the desired amount and contains the time *)
-let stoch (d : dataset) lookback time =
-  let trimmed = trim d (time - lookback) time in
-  let c = snd (List.hd trimmed) in
-  let low = low_price trimmed c in
-  let high = high_price trimmed c in
-  (c -. low) /. (high -. low) *. 100.
+let stoch (d : dataset) lookback time = assert false
+
+(* let trimmed = trim d (time - lookback) time in let c = snd (List.hd
+   trimmed) in let low = low_price trimmed c in let high = high_price
+   trimmed c in (c -. low) /. (high -. low) *. 100. *)
 
 (* calculates adx Pushed to MS3*)
 let adx d = failwith "unimplemented"
@@ -138,18 +185,25 @@ let adx d = failwith "unimplemented"
 (* calculates macd by comparing 12 day vs 26 day ema*)
 let macd d = ema d 12 12 2. -. ema d 26 26 2.
 
-let sma_accessible file_name =
-  let d = from_csv readable_to_unix file_name in
-  if d = [] then 0. else sma d 86400 10 (fst (List.hd d))
+let sma_accessible file_name = 0.0
 
-let ema_accessible file_name =
-  let d = from_csv readable_to_unix file_name in
-  ema d 86400 10 2.
+let ema_accessible file_name = 0.0
 
-let stoch_accessible file_name =
-  let d = from_csv readable_to_unix file_name in
-  stoch d (List.length d) (fst (List.hd d))
+let stoch_accessible file_name = 0.0
 
-let macd_accessible file_name =
-  let d = from_csv readable_to_unix file_name in
-  macd d
+let macd_accessible file_name = 0.0
+
+(* let sma_accessible file_name = let d = from_csv readable_to_unix
+   file_name in if d = [] then 0. else sma d 86400 10 (fst (List.hd d)) *)
+
+(* let sma_accessible file_name = let d = from_csv readable_to_unix
+   file_name in sma d 3600 10 1610686740
+
+   let ema_accessible file_name = let d = from_csv readable_to_unix
+   file_name in ema d 3600 10 2.
+
+   let stoch_accessible file_name = let d = from_csv readable_to_unix
+   file_name in stoch d (List.length d) (fst (List.hd d))
+
+   let macd_accessible file_name = let d = from_csv readable_to_unix
+   file_name in macd d *)

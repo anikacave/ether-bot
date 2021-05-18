@@ -24,9 +24,9 @@ let get_cur_price () =
       if resp |> Response.status != Response.(`OK) then
         raise
         @@ Query_Failed
-             ("HTTP request failed with status code "
-             ^ (resp |> Response.status |> Code.code_of_status
-              |> string_of_int))
+             ( "HTTP request failed with status code "
+             ^ ( resp |> Response.status |> Code.code_of_status
+               |> string_of_int ) )
       else body |> Cohttp_lwt.Body.to_string >|= fun body -> body
     in
     let json = Lwt_main.run body |> Yojson.Basic.from_string in
@@ -39,9 +39,9 @@ let get_cur_price () =
     then
       raise
       @@ Query_Failed
-           ("Failed to retrieve from etherscan.io: recieved status 0. "
-          ^ "Check your internet connection or contact the developers \
-             for additional API keys.")
+           ( "Failed to retrieve from etherscan.io: recieved status 0. "
+           ^ "Check your internet connection or contact the developers \
+              for additional API keys." )
     else
       (* Extract info from the json. Consult the json structure at
          https://api.etherscan.io/api?module=stats&action=ethprice&apikey=YourApiKeyToken*)
@@ -91,9 +91,9 @@ let get_ext (ext : extreme) (date : string) =
       if resp |> Response.status != Response.(`OK) then
         raise
         @@ Query_Failed
-             ("HTTP request failed with status code "
-             ^ (resp |> Response.status |> Code.code_of_status
-              |> string_of_int))
+             ( "HTTP request failed with status code "
+             ^ ( resp |> Response.status |> Code.code_of_status
+               |> string_of_int ) )
       else body |> Cohttp_lwt.Body.to_string >|= fun body -> body
     in
     let json = Lwt_main.run body |> Yojson.Basic.from_string in
@@ -108,7 +108,7 @@ let get_ext (ext : extreme) (date : string) =
       raise
         (Query_Failed
            "Something went wrong. Check your internet connection.")
-  | Failure s -> raise (Query_Failed "FAILURE: invalid date or weekend")
+  | Failure s -> raise (Query_Failed "invalid date/weekend")
 
 (* Gets the historical high price at given date in format MM/DD/YYYY *)
 let get_historical_high date = get_ext High date
