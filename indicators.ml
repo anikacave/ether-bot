@@ -7,6 +7,12 @@
     RI: all elements are sorted in chronological order. No duplicate times *)
 type dataset = (int * float) array
 
+type op = 
+  | Low 
+  | High 
+  | Mean 
+  | Sum
+
 (* checks that the dataset is in chronological order with no dupes*)
 let rep_ok d : dataset = 
   for i=0 to Array.length d - 2 do
@@ -16,6 +22,15 @@ let rep_ok d : dataset =
   done;
   d
 
+let analyze d op =
+  let d = Array.map snd d in
+  match op with
+    | Low -> Array.fold_left min 0. d
+    | High -> Array.fold_left max 0. d
+    | Mean -> Array.fold_left (+.) 0. d 
+      /. float_of_int (Array.length d)
+    | Sum -> Array.fold_left (+.) 0. d 
+  
 let readable_to_unix str =
   let splitcomma = String.split_on_char ',' str in
   if splitcomma = [] then None
@@ -73,9 +88,8 @@ let sample_fcn str =
 
 (* constructs a dataset from a list of tuples *)
 let from_tuple_list (lst : (int * float) list) : dataset = 
-  let length = List.length lst in
-  let arr = Array.make length (-1, -1.)
-  in assert false
+  let length = List.length lst 
+  in Array.init length (List.nth lst)
 
 (* binary search index of the target in the dataset. If doesn't exist, the lower index
   from where it would have been*)
@@ -104,21 +118,19 @@ let rec trim (d : dataset) start finish : dataset =
   for i = 0 to length - 1 do
     arr.(i) <- d.(ind1 + i)
   done;
-  arr
+  arr |> rep_ok
   
-(* sum the prices in a dataset *)
-let rec sum d = Array.fold_left (fun acc x -> snd x +. acc) 0. d
-
 (* returns a list containing the average price within each period the
    length of the list should be num_intervals. Earlier averages are at the head *)
 let rec avgs_in_period_list d period time =
   if fst d.(Array.length d - 1) > time then []
-  else
+  else 
     let trimmed = trim d (time - period) time in
     let recurse = avgs_in_period_list d period (time - period) in
     if Array.length trimmed = 0 then recurse
     else
-      (sum trimmed /. float_of_int (Array.length trimmed)) :: recurse
+      (analyze trimmed Mean ) :: recurse
+      
 
 (* [sma dataset period num_intervals time] is the SMA at time time of
    the dataset given the desired period and number of intervals to look
@@ -129,57 +141,35 @@ let rec sma d period num_intervals time =
   let trimmed_data = trim d (time - (period * num_intervals)) time in
   let averages = avgs_in_period_list trimmed_data period time in
   (* list of averages*)
-  List.fold_left ( +. ) 0. averages
-  /.  (float_of_int (List.length averages))
+  (List.fold_left ( +. ) 0. averages
+  /.  (float_of_int (List.length averages)))
 
-(** TODO make sma and ema more consistent by trimming *)
 
 (* calculates the ema given the trimmed dataset period in seconds ie
    86400 is 1 day num_periods how many periods to look back smoothing
    constant*)
+   (** TODO fix array to list conversions *)
+
 let rec ema d period num_periods smoothing =
+  let d = Array.to_list d in
   if num_periods <= 0 then 0.
-  else if d = [] then 0.
+  else if List.length d = 0 then 0.
   else
     let k = smoothing /. (float_of_int num_periods +. 1.) in
     (snd (List.hd d) *. k)
-    +. (ema (List.tl d) period (num_periods - 1) smoothing *. (1. -. k))
+    +. (ema (Array.of_list (List.tl d)) period (num_periods - 1) smoothing *. (1. -. k))
 
-type op = Low | High | Mean
-
-
-let analyze d op =
-  match op with
-    | Low -> Array.fold_left min 0. d
-    | High -> Array.fold_left max 0. d
-    | Mean -> Array.fold_left (+.) 0. d 
-      /. float_of_int (Array.length d)
-
-let rec low_price d =
-  let low = ref (-1.) in
-  for i=0 to Array.length d - 1 do
-    if d.(i) < !low then 
-      low := d.(i)
-    else ();
-  done;
-  low
-let rec high_price d acc =
-  match d with
-  | [] -> acc
-  | (_, price) :: t ->
-      if price > acc then high_price t price else high_price t acc
 
 (* [stoch d lookback time] is the stochastic oscillator looking back
    [lookback] seconds from time [time] Note: this method performs no
    smoothing Requires: the given dataset has enough information to
    lookback the desired amount and contains the time *)
 let stoch (d : dataset) lookback time =
-  assert false
-  (* let trimmed = trim d (time - lookback) time in
-  let c = snd (List.hd trimmed) in
-  let low = low_price trimmed c in
+  let trimmed = trim d (time - lookback) time in
+  let c = trimmed.(0) in
+  let low = analyze trimmed c in
   let high = high_price trimmed c in
-  (c -. low) /. (high -. low) *. 100. *)
+  (c -. low) /. (high -. low) *. 100.
 
 (* calculates adx Pushed to MS3*)
 let adx d = failwith "unimplemented"
