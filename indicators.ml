@@ -6,6 +6,8 @@
 (* AF: array of time & price pairs RI: all elements are sorted in
    chronological order. No duplicate times *)
 type dataset = (int * float) array
+let empty_data = [||]
+
 
 type op = 
   | Low 
@@ -30,32 +32,7 @@ let analyze d op =
     | Mean -> Array.fold_left (+.) 0. d 
       /. float_of_int (Array.length d)
     | Sum -> Array.fold_left (+.) 0. d 
-  
-let readable_to_unix str =
-  let splitcomma = String.split_on_char ',' str in
-  if splitcomma = [] then None
-  else
-    let splitspace = String.split_on_char ' ' (List.hd splitcomma) in
-    if splitspace = [] then None
-    else
-      let date = String.split_on_char '-' (List.hd splitspace) in
-      if date = [] then None
-      else
-        let time = String.split_on_char ':' (List.nth splitspace 1) in
-        if time = [] then None
-        else
-          (* let year = int_of_string (List.hd date) in
-          let month = int_of_string (List.nth date 1) in *)
-          let day = int_of_string (List.nth date 2) in
-          let hour = int_of_string (List.hd time) in
-          let minute = int_of_string (List.nth time 1) in
-          let second = int_of_string (List.nth time 2) in
-          let price = float_of_string (List.nth splitcomma 4) in
-          let epoch =
-            second + (60 * minute) + (3600 * hour) + (86400 * (day - 1))
-          in
-          let epochjan12021 = 1609477200 in
-          Some (epochjan12021 + epoch, price)
+
 
 (* parses a csv file and constructs dataset formatter describes how to
    parse each line into a tuple [from_csv formatter file_name] is a

@@ -3,7 +3,8 @@ open Ether_csv
 open Ether_scan_query
 open Unix
 open Wealth
-
+open Analyze
+open Indicators
 (* open Indicators *)
 
 (* Here we should open Ether_csv, Ether_scan_processing,
@@ -18,7 +19,7 @@ let readable_pid = ref 0
 
 let unreadable_pid = ref 0
 
-let filename = "ether_data.csv"
+let filename = "ETH_1min_sample.tx"
 
 let bot_filename = "ether_data_bot.csv"
 
@@ -214,6 +215,10 @@ let rec recieve_cmds () =
     | [ "9" ] | [ "help" ] | [ "Help" ] ->
         print_cmds false;
         recieve_cmds ()
+    | [ "analyze" ] -> 
+        print_show_analyze true;
+        print_analyze_cmds ();
+        recieve_analyze_cmds empty_data;
     | [ "DEMO"; indicator ] ->
         (* match indicator with | "sma" -> print_fmt ( "sma: " ^
            string_of_float (sma_accessible "ETH_1min_sample.txt") ^ "\n"
