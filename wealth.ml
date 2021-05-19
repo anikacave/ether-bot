@@ -29,14 +29,30 @@ let fname = "ether_wealth.csv"
 (** [initialize_own_row] is "own, 0.0"*)
 let initialize_own_row = "own, 0.0\n"
 
+(** [updated_own_row un] is "own, " ^ string_of_float (!ref_own) ^ "\n"*)
+let updated_own_row un = "own, " ^ string_of_float !ref_own ^ "\n"
+
 (** [initialize_worth_row] is "worth, 0.0"*)
 let initialize_worth_row = "worth, 0.0\n"
+
+(** [updated_worth_row un] is "own, " ^ string_of_float (!ref_worth) ^
+    "\n"*)
+let updated_worth_row un = "worth, " ^ string_of_float !ref_worth ^ "\n"
 
 (** [initialize_spent_row] is "spent, 0.0"*)
 let initialize_spent_row = "spent, 0.0\n"
 
+(** [updated_spent_row un] is "spent, " ^ string_of_float (!ref_spent) ^
+    "\n"*)
+let updated_spent_row un = "spent, " ^ string_of_float !ref_spent ^ "\n"
+
 (** [initialize_revenue_row] is "revenue, 0.0"*)
 let initialize_revenue_row = "revenue, 0.0\n"
+
+(** [updated_spent_row un] is "spent, " ^ string_of_float (!ref_spent) ^
+    "\n"*)
+let updated_revenue_row un =
+  "revenue, " ^ string_of_float !ref_rev ^ "\n"
 
 (** [create_csv file] creates csv @ given filename and initializes own,
     worth, spent, and revenue *)
@@ -52,8 +68,17 @@ let create_csv (file : filename) =
 
 (** [update_csv amt_ether cur_price bought] updates [ether_wealth.csv]
     by pasting in the values of our refs into the csv*)
-let update_csv un =
-  if Sys.file_exists fname then () else create_csv fname
+let update_csv (fname : filename) =
+  if Sys.file_exists fname then (
+    let buff = open_out fname in
+    (*from anika's csv_line:*)
+    output_string buff (updated_own_row ());
+    output_string buff (updated_worth_row ());
+    output_string buff (updated_spent_row ());
+    output_string buff (updated_revenue_row ());
+    (*back to create_csv*)
+    Stdlib.close_out buff )
+  else create_csv fname
 
 (** [scan_csv_for value fname] returns the float value of
     [own]/[worth]/[spent]/[revenue] (whichever string specified) located
@@ -98,13 +123,21 @@ let initialize_wealth un =
     [worth], [spent], and [revenue], and returns a tuple of the new
     values*)
 let update_values amt_ether cur_price bought =
-  if bought then (
+  (* check if amt_ether is negative *)
+  if amt_ether < 0. then
+    raise (InvalidEtherAmount "Cannot handle negative Ether amounts")
+  else if bought then (
     ref_own := !ref_own +. amt_ether;
     ref_worth := !ref_own *. cur_price;
     ref_spent := !ref_spent +. (amt_ether *. cur_price);
     (* ref_rev stays the same*)
     (!ref_own, !ref_worth, !ref_spent, !ref_rev) )
   else (
+    (* check that not selling more ether than we have*)
+    if amt_ether > !ref_own then
+      raise
+        (InsufficientEtherInOwn "Cannot sell more Ether than you own")
+    else ();
     ref_own := !ref_own -. amt_ether;
     ref_worth := !ref_own *. cur_price;
     ref_rev := !ref_rev +. (amt_ether *. cur_price);
@@ -113,12 +146,12 @@ let update_values amt_ether cur_price bought =
 
 let wealth_bought amt_ether cur_price =
   let to_return = update_values amt_ether cur_price true in
-  update_csv ();
+  update_csv fname;
   to_return
 
 let wealth_sold amt_ether cur_price =
   let to_return = update_values amt_ether cur_price false in
-  update_csv ();
+  update_csv fname;
   to_return
 
 let ether_own un = !ref_own
