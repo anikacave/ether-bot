@@ -256,14 +256,10 @@ and print_show_wealth erase_screen =
   print_fmt "WEALTH\n";
   print_fmt ("You own " ^ string_of_float (ether_own ()) ^ " Ether\n");
   print_fmt
-    ( "Worth: $"
+    ( "Worth: "
     ^ string_of_float (ether_worth (just_cur_price ()))
     ^ "\n" );
-  print_fmt ("Spent: $" ^ string_of_float (ether_spent ()) ^ "\n");
-  print_fmt
-    ( "Made (Liquid Revenue): $"
-    ^ string_of_float (ether_liquid_rev ())
-    ^ "\n" )
+  print_fmt ("Spent: " ^ string_of_float (ether_spent ()) ^ "\n")
 
 (** [print_wealth_cmds un] Just displays the commands in the Wealth
     screen to the user*)
@@ -312,13 +308,9 @@ and recieve_wealth_cmds un =
         in
         print_show_wealth false;
         recieve_wealth_cmds ()
-      with
-      | InvalidEtherAmount s ->
-          print_fmt (s ^ "\n");
-          recieve_wealth_cmds ()
-      | InsufficientEtherInOwn s ->
-          print_fmt (s ^ "\n");
-          recieve_wealth_cmds () )
+      with InvalidEtherAmount s ->
+        print_fmt (s ^ "\n");
+        recieve_wealth_cmds () )
   | [ "3" ] | [ "home" ] ->
       print_cmds true;
       recieve_cmds ()
