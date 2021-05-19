@@ -273,7 +273,10 @@ and print_wealth_cmds un =
   print_fmt
     "[2 <ff.ff>] - [sell <ff.ff>]             : Sell <ff.ff> Ether\n";
   print_fmt
-    "[3] - [home]                             : Return to home\n"
+    "[3] - [restart]                          : Set \
+     own/worth/spent/rev to 0\n";
+  print_fmt
+    "[4] - [home]                             : Return to home\n"
 
 (** [recieve_wealth_cmds un] is a REPL that reads user's commands
     (specified in [print_wealth_cmds]) and redirects user to function
@@ -292,9 +295,7 @@ and recieve_wealth_cmds un =
       let amt_ether = float_of_string flt in
       (* since we bought, update the csv accordingly *)
       try
-        let own, worth, spent, liq_rev =
-          wealth_bought amt_ether (just_cur_price ())
-        in
+        wealth_bought amt_ether (just_cur_price ());
         print_show_wealth false;
         recieve_wealth_cmds ()
       with InvalidEtherAmount s ->
@@ -303,18 +304,25 @@ and recieve_wealth_cmds un =
   | [ "2"; flt ] | [ "sell"; flt ] -> (
       let amt_ether = float_of_string flt in
       try
-        let own, worth, spent, liq_rev =
-          wealth_sold amt_ether (just_cur_price ())
-        in
+        wealth_sold amt_ether (just_cur_price ());
         print_show_wealth false;
         recieve_wealth_cmds ()
-      with InvalidEtherAmount s ->
-        print_fmt (s ^ "\n");
-        recieve_wealth_cmds () )
-  | [ "3" ] | [ "home" ] ->
+      with
+      | InvalidEtherAmount s ->
+          print_fmt (s ^ "\n");
+          recieve_wealth_cmds ()
+      | InsufficientEtherInOwn s ->
+          print_fmt (s ^ "\n");
+          recieve_wealth_cmds () )
+  | [ "3" ] | [ "restart" ] ->
+      restart_wealth ();
+      print_show_wealth false;
+      recieve_wealth_cmds ()
+  | [ "4" ] | [ "home" ] ->
       print_cmds true;
       recieve_cmds ()
   | [ "help" ] | [ "Help" ] ->
+      print_fmt "[Help]:\n";
       print_wealth_cmds ();
       recieve_wealth_cmds ()
   | _ ->

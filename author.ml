@@ -1,6 +1,6 @@
 
-(** Anika: 8 *)
-(** Eric: 6 *)
-(** Kyra: 6 *)
-(** Alma: 8 *)
-let hours_worked = 28
+(** Anika: 1 *)
+(** Eric: 1 *)
+(** Kyra: 1 *)
+(** Alma: 4 *)
+let hours_worked = 7

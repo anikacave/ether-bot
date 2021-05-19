@@ -25,6 +25,10 @@ exception InvalidEtherAmount of string
 (** When user tries to sell more Ether than they posess *)
 exception InsufficientEtherInOwn of string
 
+(** [restart_wealth un] clears the CSV log and references, so user can
+    start from clean slate *)
+val restart_wealth : unit -> unit
+
 (** [initialize_wealth un] creates the csv log if it does not exist and
     updates the value refs *)
 val initialize_wealth : unit -> unit
