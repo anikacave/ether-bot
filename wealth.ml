@@ -119,6 +119,10 @@ let initialize_wealth un =
 
 (* done with csv stuff *)
 
+let restart_wealth un =
+  create_csv fname;
+  initialize_wealth ()
+
 (** [update_values amt_ether cur_price bought] updates the refs [own],
     [worth], [spent], and [revenue], and returns a tuple of the new
     values*)
