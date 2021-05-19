@@ -16,6 +16,7 @@ type spent = float
 
 (** How much the user has made by selling previously purchased Ether. As
     usual, Net Profit = Revenue - Cost (Spent)*)
+
 type revenue = float
 
 (** When Ether specified is greater than 99.99, or 0 *)
@@ -79,4 +80,5 @@ val ether_spent_sub : amount_ether -> price -> spent
 
 (** [ether_liquid_rev_add amt_ether] updates the log file's liquid_rev
     to reflect a recent sale of ether, and returns the new value*)
+
 val ether_liquid_rev_add : amount_ether -> price -> revenue
