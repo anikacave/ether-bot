@@ -1,0 +1,10 @@
+#directory "_build";;
+#require "lwt";;
+#require "cohttp";;
+#require "yojson";;
+#require "cohttp-lwt-unix";;
+
+
+#use "ether_scan_query.ml";;
+
+

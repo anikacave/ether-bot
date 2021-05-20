@@ -7,6 +7,7 @@
 
 type dataset
 
+val empty_data : dataset
 (* parses a csv file and constructs a dataset formatter describes how to
    parse each line into a tuple [from_csv formatter file_name] is a
    dataset from the file*)
@@ -24,13 +25,15 @@ val from_tuple_list : (int * float) list -> dataset
    in epoch time *)
 val trim : dataset -> int -> int -> dataset
 
-(* [sma dataset period] is the SMA of the dataset given the desired
-   period in seconds *)
-val sma : dataset -> int -> float
+(* [sma dataset period num_periods time] *)
+val sma : dataset -> int -> int -> int -> float
 
-(* [stoch data] is the stochastic oscillator (indicator) with a lookback
+(* [ema dataset period num_periods time] *)
+val ema : dataset -> int -> int -> int -> float -> float
+
+(* [stoch data lookback time] is the stochastic oscillator (indicator) with a lookback
    period of 14 days and with closing time of ~11:59*)
-val stoch : dataset -> float
+val stoch : dataset -> int -> int -> float
 
 (* calculates adx *)
 val adx : dataset -> float
