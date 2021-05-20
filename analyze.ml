@@ -43,7 +43,7 @@ let rec print_show_analyze erase_screen =
   
   (** [print_wealth_cmds un] Just displays the commands in the Wealth
       screen to the user*)
-and print_analyze_cmds d =
+and print_analyze_cmds d = 
 (* doesn't have a clear screen param b/c is always called after "help"
     or after showing the wealth *)
 print_fmt "COMMANDS\n";
@@ -56,6 +56,10 @@ print_fmt  "[3] - [home]                             : Return to home\n"
   (specified in [print_wealth_cmds]) and redirects user to function
   that carries out that command*)
 and recieve_analyze_cmds d =
+(** todo remove this*)
+  let d = from_csv parsing_fcn1 "ETH_1min_sample.txt" in
+
+
   print_string "> ";
   match
     List.filter
@@ -65,14 +69,22 @@ and recieve_analyze_cmds d =
   | exception End_of_file -> ()
   (* | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
       quit_prog () *)
-  | [ "load"; filename ] -> 
+  | [ "open"; filename ] -> 
     let new_data = from_csv parsing_fcn1 filename in
     print_endline @@ "Loaded: " ^ filename;
     recieve_analyze_cmds new_data
-  | [ "sma" ; period; num_periods; time] ->
-    let avg = sma d (int_of_string period)
-    (int_of_string num_periods) (int_of_string time)
-  in avg |> string_of_float |> print_endline;
+  | [ "sma" ; period; num_periods; time] -> begin
+      try 
+        let avg = sma d (int_of_string period)
+        (int_of_string num_periods) (int_of_string time)
+        in avg |> string_of_float |> print_endline; 
+        recieve_analyze_cmds d
+      with 
+      | Failure "int_of_string" -> (print_fmt
+      "Please enter ints\n";
+      recieve_analyze_cmds d )
+    end
+
 
   (* | [ "3" ] | [ "home" ] ->
       print_cmds true;
