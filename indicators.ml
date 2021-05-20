@@ -6,7 +6,7 @@
 (* AF: array of time & price pairs RI: all elements are sorted in
    chronological order. No duplicate times *)
 type dataset = (int * float) array
-let empty_data = [||]
+let empty_data = Array.make 1 (-1, -1.)
 
 
 type op = 
@@ -17,11 +17,12 @@ type op =
 
 (* checks that the dataset is in chronological order with no dupes*)
 let rep_ok d : dataset =
-  for i = 0 to Array.length d - 2 do
+  (* for i = 0 to Array.length d - 2 do
     if fst d.(i) > fst d.(i + 1) then
       failwith "dataset rep invariant violated in indicators.ml"
     else ()
   done;
+  print_endline "rep ok"; *)
   d
 
 let analyze d op =
@@ -87,27 +88,49 @@ let index_of d target comp =
    dataset including datapoints between begin and end INCLUSIVE begin
    and end should be in epoch time *)
 let rec trim (d : dataset) start finish : dataset =
+  print_endline ("start is: " ^ (string_of_int start));
+  print_endline ("finish is: " ^ (string_of_int finish));
+  print_endline "trimming";
   let comparator a b = b - fst a in
   let ind1 = index_of d start comparator in
   let ind2 = index_of d finish comparator in
-  let length = ind2 - ind1 + 1 in
+  ind1 |> string_of_int |> print_endline;
+  ind2 |> string_of_int |> print_endline;
+  let length = ind1 - ind2 in
+  print_endline ("length is: " ^ (string_of_int length));
   let arr = Array.make length (-1, -1.) in
   for i = 0 to length - 1 do
-    arr.(i) <- d.(ind1 + i)
+    print_endline ("i is: " ^ (string_of_int i));
+
+    arr.(i) <- d.(ind2 + i)
   done;
+  print_endline "trimming2";
+  print_endline (Array.length arr |> string_of_int);
   arr |> rep_ok
   
 (* returns a list containing the average price within each period the
    length of the list should be num_intervals. Earlier averages are at
    the head *)
 let rec avgs_in_period_list d period time =
-  if fst d.(Array.length d - 1) > time then []
+  print_endline "hi";
+  if 
+    print_endline "hi7";
+    Array.length d = 0 then [] 
+  else if 
+    print_endline "hi2";
+    fst d.(Array.length d - 1) > time then []
   else 
+    let  a =    print_endline "hi" in
+
     let trimmed = trim d (time - period) time in
+    print_endline "hi";
+
     let recurse = avgs_in_period_list d period (time - period) in
+    print_endline "hi";
+
     if Array.length trimmed = 0 then recurse
     else
-      (analyze trimmed Mean ) :: recurse
+      (analyze trimmed Mean) :: recurse
       
 
 (* [sma dataset period num_intervals time] is the SMA at time time of
@@ -119,8 +142,11 @@ let rec sma d period num_intervals time =
   let trimmed_data = trim d (time - (period * num_intervals)) time in
   let averages = avgs_in_period_list trimmed_data period time in
   (* list of averages*)
+  if (float_of_int (List.length averages)) = 0. then 0. 
+  else
   (List.fold_left ( +. ) 0. averages
-  /.  (float_of_int (List.length averages)))
+  /.  
+    (float_of_int (List.length averages)))
 
 
 (* calculates the ema given the trimmed dataset period in seconds ie
@@ -128,14 +154,12 @@ let rec sma d period num_intervals time =
    constant*)
    (** TODO fix array to list conversions *)
 
-let rec ema d period num_periods smoothing =
-  let d = Array.to_list d in
-  if num_periods <= 0 then 0.
-  else if List.length d = 0 then 0.
-  else
-    let k = smoothing /. (float_of_int num_periods +. 1.) in
-    (snd (List.hd d) *. k)
-    +. (ema (Array.of_list (List.tl d)) period (num_periods - 1) smoothing *. (1. -. k))
+let rec ema d period num_periods time smoothing =
+  if num_periods <= 0 then 0. else
+  let trimmed = trim d (time - period) time in 
+  let k = smoothing /. (float_of_int num_periods +. 1.) in
+    (analyze trimmed Mean) *. k
+    +. (ema d period (num_periods - 1) (time - period) smoothing *. (1. -. k))
 
 (* [stoch d lookback time] is the stochastic oscillator looking back
    [lookback] seconds from time [time] Note: this method performs no
@@ -152,7 +176,10 @@ let stoch (d : dataset) lookback time =
 let adx d = failwith "unimplemented"
 
 (* calculates macd by comparing 12 day vs 26 day ema*)
-let macd d = ema d 12 12 2. -. ema d 26 26 2.
+let macd d = 
+  let latest_time = fst d.(Array.length d - 1)
+  in 
+    ema d 12 12 latest_time 2.  -. ema d 26 26 latest_time 2.
 
 let sma_accessible file_name = 0.0
 

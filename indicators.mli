@@ -28,6 +28,9 @@ val trim : dataset -> int -> int -> dataset
 (* [sma dataset period num_periods time] *)
 val sma : dataset -> int -> int -> int -> float
 
+(* [ema dataset period num_periods time] *)
+val ema : dataset -> int -> int -> int -> float -> float
+
 (* [stoch data lookback time] is the stochastic oscillator (indicator) with a lookback
    period of 14 days and with closing time of ~11:59*)
 val stoch : dataset -> int -> int -> float
