@@ -57,7 +57,7 @@ print_fmt  "[3] - [home]                             : Return to home\n"
   that carries out that command*)
 and recieve_analyze_cmds d =
 (** todo remove this*)
-  let d = from_csv parsing_fcn1 "ETH_1min_sample.txt" in
+  let d = from_csv parsing_fcn1 "ETH_1min_sample.csv" in
 
 
   print_string "> ";
@@ -76,14 +76,25 @@ and recieve_analyze_cmds d =
   | [ "sma" ; period; num_periods; time] -> begin
       try 
         let avg = sma d (int_of_string period)
-        (int_of_string num_periods) (int_of_string time)
+          (int_of_string num_periods) (int_of_string time)
         in avg |> string_of_float |> print_endline; 
         recieve_analyze_cmds d
       with 
       | Failure "int_of_string" -> (print_fmt
-      "Please enter ints\n";
-      recieve_analyze_cmds d )
+        "Please enter three integer valules \n";
+        recieve_analyze_cmds d )
     end
+  | [ "ema" ; period; num_periods; time] -> begin
+    try 
+      let avg = ema d (int_of_string period)
+        (int_of_string num_periods) (int_of_string time) 2.
+      in avg |> string_of_float |> print_endline; 
+      recieve_analyze_cmds d
+    with 
+    | Failure "int_of_string" -> (print_fmt
+      "Please enter three integer valules \n";
+      recieve_analyze_cmds d )
+  end
 
 
   (* | [ "3" ] | [ "home" ] ->

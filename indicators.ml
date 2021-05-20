@@ -154,14 +154,12 @@ let rec sma d period num_intervals time =
    constant*)
    (** TODO fix array to list conversions *)
 
-let rec ema d period num_periods smoothing =
-  let d = Array.to_list d in
-  if num_periods <= 0 then 0.
-  else if List.length d = 0 then 0.
-  else
-    let k = smoothing /. (float_of_int num_periods +. 1.) in
-    (snd (List.hd d) *. k)
-    +. (ema (Array.of_list (List.tl d)) period (num_periods - 1) smoothing *. (1. -. k))
+let rec ema d period num_periods time smoothing =
+  if num_periods <= 0 then 0. else
+  let trimmed = trim d (time - period) time in 
+  let k = smoothing /. (float_of_int num_periods +. 1.) in
+    (analyze trimmed Mean) *. k
+    +. (ema d period (num_periods - 1) (time - period) smoothing *. (1. -. k))
 
 (* [stoch d lookback time] is the stochastic oscillator looking back
    [lookback] seconds from time [time] Note: this method performs no
@@ -178,7 +176,10 @@ let stoch (d : dataset) lookback time =
 let adx d = failwith "unimplemented"
 
 (* calculates macd by comparing 12 day vs 26 day ema*)
-let macd d = ema d 12 12 2. -. ema d 26 26 2.
+let macd d = 
+  let latest_time = fst d.(Array.length d - 1)
+  in 
+    ema d 12 12 latest_time 2.  -. ema d 26 26 latest_time 2.
 
 let sma_accessible file_name = 0.0
 
