@@ -3,8 +3,7 @@ open Ether_csv
 open Ether_scan_query
 open Unix
 open Wealth
-open Analyze
-open Indicators
+
 (* open Indicators *)
 
 (* Here we should open Ether_csv, Ether_scan_processing,
@@ -19,7 +18,7 @@ let readable_pid = ref 0
 
 let unreadable_pid = ref 0
 
-let filename = "ETH_1min_sample.tx"
+let filename = "ether_data.csv"
 
 let bot_filename = "ether_data_bot.csv"
 
@@ -215,10 +214,6 @@ let rec recieve_cmds () =
     | [ "9" ] | [ "help" ] | [ "Help" ] ->
         print_cmds false;
         recieve_cmds ()
-    | [ "analyze" ] -> 
-        print_show_analyze true;
-        print_analyze_cmds ();
-        recieve_analyze_cmds empty_data;
     | [ "DEMO"; indicator ] ->
         (* match indicator with | "sma" -> print_fmt ( "sma: " ^
            string_of_float (sma_accessible "ETH_1min_sample.txt") ^ "\n"
@@ -256,10 +251,14 @@ and print_show_wealth erase_screen =
   print_fmt "WEALTH\n";
   print_fmt ("You own " ^ string_of_float (ether_own ()) ^ " Ether\n");
   print_fmt
-    ( "Worth: "
+    ( "Worth: $"
     ^ string_of_float (ether_worth (just_cur_price ()))
     ^ "\n" );
-  print_fmt ("Spent: " ^ string_of_float (ether_spent ()) ^ "\n")
+  print_fmt ("Spent: $" ^ string_of_float (ether_spent ()) ^ "\n");
+  print_fmt
+    ( "Made (Liquid Revenue): $"
+    ^ string_of_float (ether_liquid_rev ())
+    ^ "\n" )
 
 (** [print_wealth_cmds un] Just displays the commands in the Wealth
     screen to the user*)
