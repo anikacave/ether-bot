@@ -3,8 +3,8 @@ open Ether_csv
 open Ether_scan_query
 open Unix
 open Wealth
-
-(* open Indicators *)
+open Analyze
+open Indicators
 
 (* Here we should open Ether_csv, Ether_scan_processing,
    Ether_scan_query *)
@@ -213,6 +213,13 @@ let rec recieve_cmds () =
             recieve_cmds () )
     | [ "9" ] | [ "help" ] | [ "Help" ] ->
         print_cmds false;
+        recieve_cmds ()
+    | [ "analyze" ] ->
+        print_show_analyze true;
+        print_analyze_cmds ();
+        recieve_analyze_cmds empty_data;
+        (* after the user isues "home" from analyze*)
+        print_cmds true;
         recieve_cmds ()
     | [ "DEMO"; indicator ] ->
         (* match indicator with | "sma" -> print_fmt ( "sma: " ^

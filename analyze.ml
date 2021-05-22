@@ -50,7 +50,7 @@ print_fmt "COMMANDS\n";
 print_fmt "[0] - [quit]                             : Quit program\n";
 print_fmt
   "[open <file>]                           : Open <file> to analyze \n";
-print_fmt  "[3] - [home]                             : Return to home\n"
+print_fmt  "[home]                             : Return to home\n"
 
 (** [recieve_wealth_cmds un] is a REPL that reads user's commands
   (specified in [print_wealth_cmds]) and redirects user to function
@@ -67,8 +67,10 @@ and recieve_analyze_cmds d =
       (Stringext.full_split (read_line ()) ' ')
   with
   | exception End_of_file -> ()
-  (* | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
-      quit_prog () *)
+  | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
+    ()
+  | [ "home" ] ->
+    ()
   | [ "open"; filename ] -> 
     let new_data = from_csv parsing_fcn1 filename in
     print_endline @@ "Loaded: " ^ filename;
