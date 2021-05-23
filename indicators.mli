@@ -7,6 +7,15 @@
 
 type dataset
 
+type data_point = 
+   {
+   price_change : float;
+   sma : float;
+   stoch : float;
+   adx : float;
+   macd : float;
+   }
+
 val empty_data : dataset
 (* parses a csv file and constructs a dataset formatter describes how to
    parse each line into a tuple [from_csv formatter file_name] is a
@@ -39,7 +48,16 @@ val stoch : dataset -> int -> int -> float
 val adx : dataset -> float
 
 (* calculates macd. comparing 12 day vs 26 day ema *)
-val macd : dataset -> float
+val macd : dataset -> int -> float
+
+(* From the dataset, pairs the value of four indicators with 
+   the price change after [delay] seconds
+   and sampled every [period] seconds 
+   [generate_datapoints <data> 3600 300] will
+   generate an array that pairs the indicators with the price
+   change after 1 hour, sampled every 5 minutes*)
+val generate_datapoints : dataset -> int -> int -> data_point array
+
 
 (* Custom indicators coming soon!*)
 

@@ -8,6 +8,14 @@
 type dataset = (int * float) array
 let empty_data = Array.make 1 (-1, -1.)
 
+type data_point = 
+   {
+   price_change : float;
+   sma : float;
+   stoch : float;
+   adx : float;
+   macd : float;
+   }
 
 type op = 
   | Low 
@@ -17,12 +25,12 @@ type op =
 
 (* checks that the dataset is in chronological order with no dupes*)
 let rep_ok d : dataset =
-  (* for i = 0 to Array.length d - 2 do
+  for i = 0 to Array.length d - 2 do
     if fst d.(i) > fst d.(i + 1) then
       failwith "dataset rep invariant violated in indicators.ml"
     else ()
   done;
-  print_endline "rep ok"; *)
+  print_endline "rep ok";
   d
 
 let analyze d op =
@@ -71,12 +79,12 @@ let from_tuple_list (lst : (int * float) list) : dataset =
 
 (* binary search index of the target in the dataset. If doesn't exist,
    the lower index from where it would have been*)
-let index_of d target comp =
+let index_of d target =
   let rec helper low high =
     let m = (low + high) / 2 in
     if low <= high then
-      if comp d.(m) target < 0 then helper (m + 1) high
-      else if comp d.(m) target > 0 then helper low (m - 1)
+      if fst d.(m) > target then helper (m + 1) high
+      else if fst d.(m) < target then helper low (m - 1)
       else m
     else m
   in
@@ -91,9 +99,8 @@ let rec trim (d : dataset) start finish : dataset =
   print_endline ("start is: " ^ (string_of_int start));
   print_endline ("finish is: " ^ (string_of_int finish));
   print_endline "trimming";
-  let comparator a b = b - fst a in
-  let ind1 = index_of d start comparator in
-  let ind2 = index_of d finish comparator in
+  let ind1 = index_of d start in
+  let ind2 = index_of d finish in
   ind1 |> string_of_int |> print_endline;
   ind2 |> string_of_int |> print_endline;
   let length = ind1 - ind2 in
@@ -112,22 +119,13 @@ let rec trim (d : dataset) start finish : dataset =
    length of the list should be num_intervals. Earlier averages are at
    the head *)
 let rec avgs_in_period_list d period time =
-  print_endline "hi";
   if 
-    print_endline "hi7";
     Array.length d = 0 then [] 
   else if 
-    print_endline "hi2";
     fst d.(Array.length d - 1) > time then []
   else 
-    let  a =    print_endline "hi" in
-
     let trimmed = trim d (time - period) time in
-    print_endline "hi";
-
     let recurse = avgs_in_period_list d period (time - period) in
-    print_endline "hi";
-
     if Array.length trimmed = 0 then recurse
     else
       (analyze trimmed Mean) :: recurse
@@ -176,10 +174,43 @@ let stoch (d : dataset) lookback time =
 let adx d = failwith "unimplemented"
 
 (* calculates macd by comparing 12 day vs 26 day ema*)
-let macd d = 
-  let latest_time = fst d.(Array.length d - 1)
-  in 
-    ema d 12 12 latest_time 2.  -. ema d 26 26 latest_time 2.
+let macd d time = 
+  ema d 12 12 time 2.  -. ema d 26 26 time 2.
+
+let generate_datapoints (data : dataset) delay period : data_point array= 
+  let latest = fst data.(Array.length data - 1)
+  and earliest = fst data.(Array.length data - 1)
+  in let length = 2 * (latest - earliest) / period (* how many data points to create*)
+  in let f i = begin (* index to data_point*)
+    let from = (i+1) * period / 2 + earliest in
+    (*  in let trimmed = 
+      trim data from (from + period)
+    in *)
+    let new_price = (from + delay) (* price after a delay*)
+    |> index_of data 
+    |> Array.get data
+    |> snd
+    and old_price = (from)
+    |> index_of data 
+    |> Array.get data
+    |> snd in
+    {
+    price_change = (new_price -. old_price) /. old_price;
+    sma = sma data 3600 48 from; (* sma of the last 48 hours*)
+    stoch = stoch data 86400 from; (* stoch of the last day*)
+    adx = 0.;
+    macd = macd data from;
+    }
+  end
+  in Array.init length f
+
+  (** filters the points of interest where the price change
+  is greater than the specified change*)
+let points_of_interest data delay period change = 
+  generate_datapoints data delay period
+  |> Array.to_list
+  |> List.filter 
+    (fun x -> (Float.abs x.price_change) > Float.abs change)
 
 let sma_accessible file_name = 0.0
 
