@@ -17,7 +17,7 @@ test:
 	$(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST) -runner sequential
 
 run:
-	$(OCAMLBUILD) $(MAIN) $(CSV_WRITER) && OCAMLRUNPARAM=b ./$(MAIN)
+	$(OCAMLBUILD) $(MAIN) -tag 'debug' $(CSV_WRITER) && OCAMLRUNPARAM=b ./$(MAIN)
 
 run_csv_writer:
 	$(OCAMLBUILD) $(CSV_WRITER) && OCAMLRUNPARAM=b ./$(CSV_WRITER)
