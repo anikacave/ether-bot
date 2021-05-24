@@ -212,7 +212,8 @@ let rec recieve_cmds () =
     | [ "info" ] ->
         print_show_info true;
         print_info_cmds ();
-        recieve_info_cmds ()
+        recieve_info_cmds ();
+        recieve_cmds ()
     | [ "graph" ] ->
         make_graph filename;
         recieve_cmds ()
