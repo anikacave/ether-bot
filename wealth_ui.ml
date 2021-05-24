@@ -8,10 +8,14 @@ let print_fmt str = ANSITerminal.(print_string [ magenta ] str)
 
 let rec print_show_wealth erase_screen =
   if erase_screen then (
-    ANSITerminal.(erase Screen);
-    ANSITerminal.set_cursor 1 1 )
+    print_fmt "Welcome to Wealth!\n";
+    print_fmt "Here you can buy and sell Ether in a safe, fake money environment.\n";
+    print_fmt "Ask our bot what she thinks you should do --\n";
+    print_fmt "maybe her prowess will convince you to spend some money IRL!\n";
+    print_fmt "(best part is, what you buy and sell today will update with new valuation tomorrow!)\n";
+    print_fmt "WEALTH\n" )
   else ();
-  print_fmt "WEALTH\n";
+  
   print_fmt ("You own " ^ string_of_float (ether_own ()) ^ " Ether\n");
   print_fmt
     ( "Worth: $"
