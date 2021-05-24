@@ -30,7 +30,7 @@ let rep_ok d : dataset =
       failwith "dataset rep invariant violated in indicators.ml"
     else ()
   done;
-  print_endline "rep ok";
+  (* print_endline "rep ok"; *)
   d
 
 let from_csv parsing_fcn file_name =
@@ -82,8 +82,8 @@ let rec trim (d : dataset) start finish : dataset =
   print_endline "finding indices..."; *)
   let ind1 = index_of d start in
   let ind2 = index_of d finish in
-  ind1 |> string_of_int |> print_endline;
-  ind2 |> string_of_int |> print_endline;
+  (* ind1 |> string_of_int |> print_endline;
+  ind2 |> string_of_int |> print_endline; *)
   let length = ind2 - ind1 in
   (* print_endline ("length is: " ^ (string_of_int length));
   print_endline ("length of d is: " ^ (string_of_int (Array.length d)));
@@ -163,12 +163,11 @@ let rec sma d period num_intervals time =
 (* calculates the ema given the trimmed dataset period in seconds ie
    86400 is 1 day num_periods how many periods to look back smoothing
    constant*)
-   (** TODO fix array to list conversions *)
 
 let rec ema d period num_periods time ?(smoothing = 2.) =
   if num_periods <= 0 || time <= fst d.(0) then 0. else
   let trimmed = trim d (time - period) time in 
-  print_endline @@ "not 0: " ^ string_of_float ((float_of_int num_periods +. 1.));
+  (* print_endline @@ "not 0: " ^ string_of_float ((float_of_int num_periods +. 1.)); *)
   let k = smoothing /. (float_of_int num_periods +. 1.) in
     (analyze trimmed Mean) *. k
     +. (ema d period (num_periods - 1) (time - period) 
@@ -185,7 +184,38 @@ let stoch (d : dataset) lookback time =
   let closing = snd trimmed.(Array.length trimmed - 1) in (* this might throw an error*)
   let low = analyze trimmed Low in
   let high = analyze trimmed High in
+  let x = print_endline (string_of_int (lookback)) in
+  (* let x = print_endline (string_of_int (time)) in *)
+
+  let x = print_endline (string_of_int (Array.length trimmed)) in
+
   ((closing -. low) /. (high -. low)) *. 100.
+let sma_accessible d = 
+  let latest = d (* latest data point in d*)
+    |> Array.length
+    |> (+) (-1) (* commutativity problem*)
+    |> Array.get d
+    |> fst
+  in
+  sma d 86400 14 latest (* 14 day daily sma*)
+
+let ema_accessible d =   
+  let latest = d (* latest data point in d*)
+    |> Array.length
+    |> (+) (-1) (* commutativity problem*)
+    |> Array.get d
+    |> fst
+    in
+  ema d 86400 14 latest ~smoothing:2. (* 14 day daily ema*)
+
+let stoch_accessible d =   
+  let latest = d (* latest data point in d*)
+    |> Array.length
+    |> (+) (-1) (* commutativity problem*)
+    |> Array.get d
+    |> fst
+    in
+  stoch d 86400 latest (* stoch of the last day*)
 
 let adx d period time = 
   (* pos directional movement of two periods looking
@@ -226,7 +256,7 @@ let adx d period time =
   in 
     assert ((pos_dm period time) <> Float.infinity);
     assert ((neg_dm period time) <> Float.infinity);
-    assert ((pos_dm period time -. neg_dm period time) <> 0.);
+    (* assert ((pos_dm period time -. neg_dm period time) <> 0.); *)
     (* assert ((atr period time) <> 0.); *)
     (atr period time)
     |> (/.) (pos_dm period time -. neg_dm period time)
@@ -237,6 +267,25 @@ let macd d period time =
   ema d period 12 time ~smoothing:2. 
   -. ema d period 26 time ~smoothing:2. 
  
+let adx_accessible d =   
+  let latest = d (* latest data point in d*)
+    |> Array.length
+    |> (+) (-1)
+    |> Array.get d
+    |> fst
+    in
+  adx d 86400 latest (* adx of the last day*)
+
+let macd_accessible d =   
+  let latest = d (* latest data point in d*)
+    |> Array.length
+    |> (+) (-1) 
+    |> Array.get d
+    |> fst
+    in
+  macd d 86400 latest (* macd with period of 1 day
+    compares 26 day with 12 day*)
+
 let generate_datapoints (data : dataset) delay period : data_point array = 
   (* array size safety. If empty, empty data_point*)
   if (Array.length data = 0) then Array.make 0 {
@@ -277,10 +326,10 @@ let generate_datapoints (data : dataset) delay period : data_point array =
   (** filters the points of interest where the price change
   is greater than the specified change*)
 let points_of_interest data delay period change = 
-  generate_datapoints data delay period
+  (* generate_datapoints data delay period
   |> Array.length 
   |> string_of_int
-  |> print_endline;
+  |> print_endline; *)
   generate_datapoints data delay period
   |> Array.to_list
   |> List.filter @@
@@ -294,25 +343,4 @@ let string_of_data_point (data_point : data_point) =
   ^ " Stoch: " ^ string_of_float data_point.stoch
   ^ " ADX: " ^ string_of_float data_point.adx
   ^ " MACD: " ^ string_of_float data_point.macd
-let sma_accessible file_name = 0.0
-
-let ema_accessible file_name = 0.0
-
-let stoch_accessible file_name = 0.0
-
-let macd_accessible file_name = 0.0
-
-(* let sma_accessible file_name = let d = from_csv readable_to_unix
-   file_name in if d = [] then 0. else sma d 86400 10 (fst (List.hd d)) *)
-
-(* let sma_accessible file_name = let d = from_csv readable_to_unix
-   file_name in sma d 3600 10 1610686740
-
-   let ema_accessible file_name = let d = from_csv readable_to_unix
-   file_name in ema d 3600 10 2.
-
-   let stoch_accessible file_name = let d = from_csv readable_to_unix
-   file_name in stoch d (List.length d) (fst (List.hd d))
-
-   let macd_accessible file_name = let d = from_csv readable_to_unix
-   file_name in macd d *)
+  

@@ -115,11 +115,14 @@ val print_data : dataset -> unit
 
 (* Custom indicators coming soon!*)
 
-(* for demo purposes *)
-val sma_accessible : string -> float
+(* Finds the last possible indicator values with default
+   settings *)
+val sma_accessible : dataset -> float
 
-val ema_accessible : string -> float
+val ema_accessible : dataset -> float
 
-val stoch_accessible : string -> float
+val stoch_accessible : dataset -> float
 
-val macd_accessible : string -> float
+val adx_accessible : dataset -> float
+
+val macd_accessible : dataset -> float

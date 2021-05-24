@@ -84,7 +84,9 @@ let rec print_show_analyze erase_screen =
     ANSITerminal.(erase Screen);
     ANSITerminal.set_cursor 1 1 )
   else ();
-  print_fmt "Analysis Module\n"
+  print_fmt "Analysis Module\n";
+  print_fmt
+  "The file 'ETH_1min_sample.csv' is loaded by default. \n";
 
 (** [print_analyze_cmds d] displays the commands in the Wealth screen to
     the user. The d argument is used to keep track of the dataset in
@@ -141,7 +143,7 @@ and print_analyze_cmds d =
      would like to begin calculating adx.\n";
   print_fmt
     "[poi <delay> <period> <change>]            : Displays a list of \
-     data points in <delay> seconds ago in <period>. \n";
+     data points whose price changes by <change> after <delay> seconds, sampled every <period>. \n";
   print_fmt
     "                                             whose change from \
      previous data point is greater than <change>\n";
