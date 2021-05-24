@@ -60,5 +60,6 @@ let graph_ascii (l : float list) (s : string) =
   in
   graph col_height 0 10 ""
 
-let make_graph filename =
-  print_string (graph_ascii (csv_to_lst filename) "")
+let string_graph filename = graph_ascii (csv_to_lst filename) ""
+
+let make_graph filename = print_string (string_graph filename)

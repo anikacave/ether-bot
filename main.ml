@@ -7,6 +7,7 @@ open Analyze
 open Indicators
 open Wealth_ui
 open Ascii_graph
+open Get_info
 
 (* Here we should open Ether_csv, Ether_scan_processing,
    Ether_scan_query *)
@@ -81,7 +82,7 @@ let print_cmds erase_screen =
   if erase_screen then (
     ANSITerminal.(
       erase Screen;
-      set_cursor 1 1) )
+      set_cursor 1 1))
   else ();
   print_fmt "HOME ~ COMMANDS:\n";
   print_fmt "[0] - [quit]                             : Quit program\n";
@@ -114,14 +115,17 @@ let print_cmds erase_screen =
      Ether data\n";
   print_fmt
     "[analyze]                                : Takes you to the \
-     Analyze screen\n"
+     Analyze screen\n";
+  print_fmt
+    "[info]                                   : Takes you to the Info \
+     screen\n"
 
 (** [open_data_csv] opens [ether_data.csv] in terminal if it exists,
     else it prints \"Can not present data\""*)
 let open_data_csv filename =
   if Sys.file_exists filename then (
     Unix.system ("cat " ^ filename);
-    () )
+    ())
   else print_fmt "Can not present data\n"
 
 let quit_prog un =
@@ -162,41 +166,39 @@ let rec recieve_cmds () =
     | [ "4" ] | [ "open"; "bot"; "data" ] ->
         open_data_csv bot_filename |> recieve_cmds
     | [ "5" ] | [ "price"; "high"; "today" ] ->
-        ( match high_today bot_filename with
+        (match high_today bot_filename with
         | exception TimestampNotFound ->
             print_fmt "No data from today\n"
         | time, price ->
             print_fmt
-              ("Price high from today: " ^ string_of_float price ^ "\n")
-        );
+              ("Price high from today: " ^ string_of_float price ^ "\n"));
         recieve_cmds ()
     | [ "6" ] | [ "price"; "low"; "today" ] ->
-        ( match low_today bot_filename with
+        (match low_today bot_filename with
         | exception TimestampNotFound ->
             print_fmt "No data from today\n"
         | time, price ->
             print_fmt
-              ("Price low from today: " ^ string_of_float price ^ "\n")
-        );
+              ("Price low from today: " ^ string_of_float price ^ "\n"));
         recieve_cmds ()
     | [ "7"; s ] | [ "price"; "high"; s ] -> (
         match check_date s with
         (* query_failed caught below *)
         | s ->
             print_fmt
-              ( "High price from " ^ s ^ ": "
+              ("High price from " ^ s ^ ": "
               ^ string_of_float (get_historical_high s)
-              ^ "\n" );
-            recieve_cmds () )
+              ^ "\n");
+            recieve_cmds ())
     | [ "8"; s ] | [ "price"; "low"; s ] -> (
         match check_date s with
         (* query_failed caught below *)
         | s ->
             print_fmt
-              ( "Low price from " ^ s ^ ": "
+              ("Low price from " ^ s ^ ": "
               ^ string_of_float (get_historical_low s)
-              ^ "\n" );
-            recieve_cmds () )
+              ^ "\n");
+            recieve_cmds ())
     | [ "9" ] | [ "help" ] | [ "Help" ] ->
         print_cmds false;
         recieve_cmds ()
@@ -207,6 +209,10 @@ let rec recieve_cmds () =
         (* after the user isues "home" from analyze*)
         print_cmds true;
         recieve_cmds ()
+    | [ "info" ] ->
+        print_show_info true;
+        print_info_cmds ();
+        recieve_info_cmds ()
     | [ "graph" ] ->
         make_graph filename;
         recieve_cmds ()
