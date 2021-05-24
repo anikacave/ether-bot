@@ -25,12 +25,12 @@ type op =
 
 (* checks that the dataset is in chronological order with no dupes*)
 let rep_ok d : dataset =
-  (* for i = 0 to Array.length d - 2 do
+  for i = 0 to Array.length d - 2 do
     if fst d.(i) > fst d.(i + 1) then
       failwith "dataset rep invariant violated in indicators.ml"
     else ()
   done;
-  print_endline "rep ok"; *)
+  print_endline "rep ok";
   d
 
 let analyze d op =
@@ -76,9 +76,11 @@ let index_of d target =
     if low <= high then
       if fst d.(m) < target then helper (m + 1) high
       else if fst d.(m) > target then helper low (m - 1)
-      else m
+      else if (fst d.(m) = target) then
+        m
+      else failwith "Impossible???"
     else 
-      m
+    m
   in
   let low = 0 in
   let high = Array.length d - 1 in
@@ -88,25 +90,25 @@ let index_of d target =
    dataset including datapoints between begin and end INCLUSIVE begin
    and end should be in epoch time *)
 let rec trim (d : dataset) start finish : dataset =
-  print_endline ("start is: " ^ (string_of_int start));
+  (* print_endline ("start is: " ^ (string_of_int start));
   print_endline ("finish is: " ^ (string_of_int finish));
-  print_endline "finding indices...";
+  print_endline "finding indices..."; *)
   let ind1 = index_of d start in
   let ind2 = index_of d finish in
   ind1 |> string_of_int |> print_endline;
   ind2 |> string_of_int |> print_endline;
   let length = ind2 - ind1 in
-  print_endline ("length is: " ^ (string_of_int length));
+  (* print_endline ("length is: " ^ (string_of_int length));
   print_endline ("length of d is: " ^ (string_of_int (Array.length d)));
-  print_endline ("ind2 is:  " ^ (string_of_int ind2));
+  print_endline ("ind2 is:  " ^ (string_of_int ind2)); *)
   (*pog? TODO fix this duct tape *)
   let arr = Array.init length (fun i -> 
     d.(ind1 + i)
     (* try d.(ind2 + i)
     with Invalid_argument _ -> (0, 0.) *)
   ) in
-  print_endline "trimming2";
-  print_endline (Array.length arr |> string_of_int);
+  (* print_endline "trimming2";
+  print_endline (Array.length arr |> string_of_int); *)
   arr |> rep_ok
   
 (* returns a list containing the average price within each period the

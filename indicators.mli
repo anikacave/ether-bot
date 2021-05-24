@@ -13,13 +13,25 @@ type data_point =
    macd : float;
    }
 
+
 (* represents an empty dataset *)
 val empty_data : dataset
+
+
+(* ensures the representation invariant holds for datsets
+   Normally this would not be in the interface, but it is needed
+   to call in our test suite*)
+val rep_ok : dataset -> dataset
+
+(* index of the dataset rounded down. *)
+val index_of : dataset -> int -> int
 
 (** parses a csv file and constructs a dataset.
    [formatter] describes how to parse each line of the file
    [filename] is the name of the csv file to read
-   [from_csv formatter filename] is dataset from the specified file*)
+   [from_csv formatter filename] is dataset from the specified file
+   Requires: the file sorts datapoints in chronological order
+   where the latest values are first*)
 val from_csv : (string -> (int * float) option) -> string -> dataset
 
 (** constructs a dataset from a list of tuples *)
