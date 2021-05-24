@@ -214,7 +214,7 @@ let generate_datapoints (data : dataset) delay period : data_point array=
     sma = sma data 3600 48 from; (* sma of the last 48 hours*)
     stoch = stoch data 86400 from; (* stoch of the last day*)
     adx = 0.;
-    macd = macd data from;
+    macd = macd data 86400 from;
     }
   end
   in Array.init length f

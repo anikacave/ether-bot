@@ -92,7 +92,7 @@ and recieve_analyze_cmds d =
       let avg = ema d (int_of_string period)
         (* smoothing constant is 2 by default in technical analysis*)
         (int_of_string num_periods) (int_of_string time) 
-        ~smoothing:2.  
+        ~smoothing: 2. 
       in avg |> string_of_float |> print_endline; 
       recieve_analyze_cmds d
     with 
