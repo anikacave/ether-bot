@@ -1,6 +1,7 @@
 
 open Wealth
 open Ether_scan_processing
+open Wealth_bot
 
 (* ANSITerminal formatting*)
 let print_fmt str = ANSITerminal.(print_string [ magenta ] str)
@@ -36,6 +37,8 @@ and print_wealth_cmds un =
       own/worth/spent/rev to 0\n";
   print_fmt
     "[4] - [home]                             : Return to home\n";
+  print_fmt 
+    "[5] - [ask bot]                          : See if bot recommends buying or selling\n";
   print_fmt
     "[help]                                   : Displays commands\n"
 
@@ -47,6 +50,10 @@ and recieve_wealth_cmds un =
       (Stringext.full_split (read_line ()) ' ')
   with
   | exception End_of_file -> ()
+  | ["5"] | ["ask"; "bot"] -> (
+    print_fmt ("you should: " ^ suggestion () ^ "\n");
+    recieve_wealth_cmds ()
+  )
   | [ "1"; flt ] | [ "buy"; flt ] -> (
       let amt_ether = float_of_string flt in
       (* since we bought, update the csv accordingly *)

@@ -23,7 +23,7 @@ type op =
   | Mean 
   | Sum
 
-(* checks that the dataset is in chronological order with no dupes*)
+(** checks that the dataset is in chronological order with no dupes*)
 let rep_ok d : dataset =
   for i = 0 to Array.length d - 2 do
     if fst d.(i) > fst d.(i + 1) then
@@ -43,7 +43,7 @@ let analyze d op =
     | Sum -> Array.fold_left (+.) 0. d 
 
 
-(* parses a csv file and constructs dataset formatter describes how to
+(** parses a csv file and constructs dataset formatter describes how to
    parse each line into a tuple [from_csv formatter file_name] is a
    dataset from the file*)
 let from_csv parsing_fcn file_name =
@@ -72,12 +72,12 @@ let sample_fcn str =
         List.nth vals 1 |> float_of_string )
   with Failure _ -> None
 
-(* constructs a dataset from a list of tuples *)
+(** constructs a dataset from a list of tuples *)
 let from_tuple_list (lst : (int * float) list) : dataset = 
   let length = List.length lst 
   in Array.init length (List.nth lst)
 
-(* binary search index of the target in the dataset. If doesn't exist,
+(** binary search index of the target in the dataset. If doesn't exist,
    the lower index from where it would have been*)
 let index_of d target =
   let rec helper low high =
@@ -92,7 +92,7 @@ let index_of d target =
   let high = Array.length d - 1 in
   helper low high
 
-(* returns a subset of the dataset from [trim dataset begin end] is a
+(** returns a subset of the dataset from [trim dataset begin end] is a
    dataset including datapoints between begin and end INCLUSIVE begin
    and end should be in epoch time *)
 let rec trim (d : dataset) start finish : dataset =
@@ -113,7 +113,7 @@ let rec trim (d : dataset) start finish : dataset =
   print_endline (Array.length arr |> string_of_int);
   arr |> rep_ok
   
-(* returns a list containing the average price within each period the
+(** returns a list containing the average price within each period the
    length of the list should be num_intervals. Earlier averages are at
    the head *)
 let rec avgs_in_period_list d period time =
@@ -136,7 +136,7 @@ let print_data d =
     |> print_endline
     in
     Array.iter f d
-(* [sma dataset period num_intervals time] is the SMA at time time of
+(** [sma dataset period num_intervals time] is the SMA at time time of
    the dataset given the desired period and number of intervals to look
    back Require: time is in epoch time For example [sma dataset 86400 10
    1619582400] returns the 10 day daily average starting from April 28th
@@ -152,7 +152,7 @@ let rec sma d period num_intervals time =
     (float_of_int (List.length averages)))
 
 
-(* calculates the ema given the trimmed dataset period in seconds ie
+(** calculates the ema given the trimmed dataset period in seconds ie
    86400 is 1 day num_periods how many periods to look back smoothing
    constant*)
    (** TODO fix array to list conversions *)
@@ -164,7 +164,7 @@ let rec ema d period num_periods time smoothing =
     (analyze trimmed Mean) *. k
     +. (ema d period (num_periods - 1) (time - period) smoothing *. (1. -. k))
 
-(* [stoch d lookback time] is the stochastic oscillator looking back
+(** [stoch d lookback time] is the stochastic oscillator looking back
    [lookback] seconds from time [time] Note: this method performs no
    smoothing Requires: the given dataset has enough information to
    lookback the desired amount and contains the time *)
@@ -176,10 +176,10 @@ let stoch (d : dataset) lookback time =
   let high = analyze trimmed High in
   ((closing -. low) /. (high -. low)) *. 100.
 
-(* calculates adx Pushed to MS3*)
+(** calculates adx Pushed to MS3*)
 let adx d = failwith "unimplemented"
 
-(* calculates macd by comparing 12 day vs 26 day ema*)
+(** calculates macd by comparing 12 day vs 26 day ema*)
 let macd d time = 
   ema d 12 12 time 2.  -. ema d 26 26 time 2.
 
