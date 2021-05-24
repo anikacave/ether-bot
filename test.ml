@@ -46,7 +46,66 @@ let convert_time_stamp_tests =
       "21:46:40 on September 8th 2001" "1000000000";
   ]
 
-let graph_test 
+(* Indicators.ml tests TODO: move this to another file and change the
+   make test file to run it*)
+open Indicators
+
+(* a function that parses ETH_1min_sample.csv into a dataset*)
+let one_min_sample_parsing str =
+  let splitcomma = String.split_on_char ',' str in
+  if splitcomma = [] then None
+  else
+    let splitspace = String.split_on_char ' ' (List.hd splitcomma) in
+    if splitspace = [] then None
+    else
+      let date = String.split_on_char '-' (List.hd splitspace) in
+      if date = [] then None
+      else
+        let time = String.split_on_char ':' (List.nth splitspace 1) in
+        if time = [] then None
+        else
+          let day = int_of_string (List.nth date 2) in
+          let hour = int_of_string (List.hd time) in
+          let minute = int_of_string (List.nth time 1) in
+          let second = int_of_string (List.nth time 2) in
+          let price = float_of_string (List.nth splitcomma 4) in
+          let epoch =
+            second + (60 * minute) + (3600 * hour) + (86400 * (day - 1))
+          in
+          let epochjan12021 = 1609459200 in
+          Some (epochjan12021 + epoch, price)
+
+let data =
+  from_csv one_min_sample_parsing "ETH_1min_sample.csv" |> rep_ok
+
+let index_of_test name data target expected : test =
+  name >:: fun _ ->
+  assert_equal expected (index_of data target) ~printer:string_of_int
+
+let index_of_tests =
+  [
+    index_of_test
+      "First timestamp in dataset. Jan 1.\n    expecting ind 0" data
+      1609459260 0;
+    index_of_test
+      "Given target between first and second data\n\
+      \    expecting to round down to 0" data 1609459261 0;
+    index_of_test
+      "Given target between first and second data\n\
+      \    expecting to round down to 0" data 1609459319 0;
+    index_of_test "Get index 1. Exact time" data 1609459320 1;
+    index_of_test "Get index 1. Rounded down" data 1609459321 1;
+    index_of_test "Get index 1. Rounded down" data 1609459379 1;
+    index_of_test "Get index 2. Exact epoch" data 1609459380 2;
+    index_of_test "Get mid index. Exact epoch" data 1609804800 5696;
+    index_of_test "Get mid index. Round down" data 1609804801 5696;
+    index_of_test "Big number rounds down to latest value" data
+      696942069420 19990;
+    (* length of entire dataset is 19991*)
+    index_of_test "Small number rounds up to earliest value" data 1 0;
+  ]
+
+let indicator_tests = List.flatten [ index_of_tests ]
 
 let suite =
   "test suite for final project"
@@ -55,6 +114,7 @@ let suite =
            format_date_tests;
            format_date_tests;
            convert_time_stamp_tests;
+           indicator_tests;
          ]
 
 let _ = run_test_tt_main suite

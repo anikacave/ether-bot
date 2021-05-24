@@ -16,10 +16,33 @@ type data_point =
 (* represents an empty dataset *)
 val empty_data : dataset
 
+
+(** ensures the representation invariant holds for datsets
+   Normally this would not be in the interface, but it is needed
+   to call in our test suite*)
+val rep_ok : dataset -> dataset
+
+(** The index of the epoch time in the dataset. 
+   If the dataset does not contain the specified time
+   this function will round to a valid index. It rounds
+   the index down. However, if the specified time
+   is outside the interval of the dataset entirely,
+   we the closest index will be returned*)
+val index_of : dataset -> int -> int
+
+(** [high data start finish] is the highest price
+   attained between the start and finish interval
+   in the dataset*) 
+val high : dataset -> int -> int -> float
+val low : dataset -> int -> int -> float
+val mean : dataset -> int -> int -> float
+
 (** parses a csv file and constructs a dataset.
    [formatter] describes how to parse each line of the file
    [filename] is the name of the csv file to read
-   [from_csv formatter filename] is dataset from the specified file*)
+   [from_csv formatter filename] is dataset from the specified file
+   Requires: the file sorts datapoints in chronological order
+   where the latest values are first*)
 val from_csv : (string -> (int * float) option) -> string -> dataset
 
 (** constructs a dataset from a list of tuples *)
