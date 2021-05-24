@@ -6,6 +6,7 @@ open Wealth
 open Analyze
 open Indicators
 open Wealth_ui
+open Ascii_graph
 
 (* Here we should open Ether_csv, Ether_scan_processing,
    Ether_scan_query *)
@@ -197,6 +198,9 @@ let rec recieve_cmds () =
         recieve_analyze_cmds empty_data;
         (* after the user isues "home" from analyze*)
         print_cmds true;
+        recieve_cmds ()
+    | [ "graph" ] ->
+        make_graph filename;
         recieve_cmds ()
     | _ ->
         print_fmt
