@@ -5,6 +5,7 @@ open Unix
 open Wealth
 open Analyze
 open Indicators
+open Wealth_ui
 
 (* Here we should open Ether_csv, Ether_scan_processing,
    Ether_scan_query *)
@@ -112,10 +113,7 @@ let print_cmds erase_screen =
     "[8 <mm/dd/yyyy>] - [price low mm/dd/yyyy]    : Ether high from \
      <mm/dd/yyyy>\n";
   print_fmt
-    "[9] - [help]                             : Redisplay commands\n";
-  print_fmt
-    "[DEMO sma] / [DEMO ema] / [DEMO stoch] / [DEMO macd] : For \
-     demonstration purposes only\n"
+    "[9] - [help]                             : Redisplay commands\n"
 
 (** [open_data_csv] opens [ether_data.csv] in terminal if it exists,
     else it prints \"Can not present data\""*)
@@ -125,18 +123,7 @@ let open_data_csv filename =
     () )
   else print_fmt "Can not present data\n"
 
-(* this is not relevant right now b/c high and low from API (**
-   [reformat_user_timestamp s] is the csv-friendly timestamp, derived
-   from input timestamp s. If s is not in the format <[m]m/[d]d/yyyy>,
-   raises [Malformed_date] exception*) let reformat_user_timestamp s =
-   try match Stringext.full_split s '/' with | [ m; "/"; d; "/"; y ] ->
-   format_date (int_of_string m - 1) (int_of_string d) (int_of_string y)
-   | _ -> raise (Malformed_date "Input date not in form
-   <[m]m/[d]d/yyyy>") with Invalid_date s -> raise (Malformed_date
-   ("Incorrectly formated date: " ^ s)) *)
 
-(* [quit_prog un] is the last method run in whole script; makes sure to
-   kill the two processes spawned when the program starts up*)
 let quit_prog un =
   let str = str_how_much_would_have_made () in
   print_fmt (str ^ "\n");
@@ -165,12 +152,11 @@ let rec recieve_cmds () =
         print_fmt (formatted_str_price_time () ^ "\n") |> recieve_cmds
     | [ "2" ] | [ "show"; "wealth" ] ->
         print_show_wealth true;
-        (* the params are just temporary; later once wealth.ml is
-           developed it'll be like "ether_amt_get", "ether_worth_get",
-           "ether_spent_get"*)
         print_wealth_cmds ();
-        (* don't erase screen *)
-        recieve_wealth_cmds ()
+        recieve_wealth_cmds ();
+        (* after the user isues "home" from wealth*)
+        print_cmds true;
+        recieve_cmds ()
     | [ "3" ] | [ "open"; "data" ] ->
         open_data_csv filename |> recieve_cmds
     | [ "4" ] | [ "open"; "bot"; "data" ] ->
@@ -221,19 +207,6 @@ let rec recieve_cmds () =
         (* after the user isues "home" from analyze*)
         print_cmds true;
         recieve_cmds ()
-    | [ "DEMO"; indicator ] ->
-        (* match indicator with | "sma" -> print_fmt ( "sma: " ^
-           string_of_float (sma_accessible "ETH_1min_sample.txt") ^ "\n"
-           ) |> recieve_cmds | "ema" -> print_fmt ( "ema: " ^
-           string_of_float (ema_accessible "ETH_1min_sample.txt") ^ "\n"
-           ) |> recieve_cmds | "stoch" -> print_fmt ( "stoch: " ^
-           string_of_float (stoch_accessible "ETH_1min_sample.txt") ^
-           "\n" ) |> recieve_cmds | "macd" -> print_fmt ( "macd: " ^
-           string_of_float (macd_accessible "ETH_1min_sample.txt") ^
-           "\n" ) |> recieve_cmds | _ -> *)
-        print_fmt
-          "could not understand. Please try again or type [help]";
-        recieve_cmds ()
     | _ ->
         print_fmt
           "I could not understand your choice of command. Please try \
@@ -246,96 +219,6 @@ let rec recieve_cmds () =
   | Malformed_date s ->
       print_fmt (s ^ "\n");
       recieve_cmds ()
-
-(** [print_show_wealth erase_screen] Displays the user's Ether wealth.
-    The parameters are printed from the CSV. All calculations are done
-    in [recieve_wealth_commands]*)
-and print_show_wealth erase_screen =
-  if erase_screen then (
-    ANSITerminal.(erase Screen);
-    ANSITerminal.set_cursor 1 1 )
-  else ();
-  print_fmt "WEALTH\n";
-  print_fmt ("You own " ^ string_of_float (ether_own ()) ^ " Ether\n");
-  print_fmt
-    ( "Worth: $"
-    ^ string_of_float (ether_worth (just_cur_price ()))
-    ^ "\n" );
-  print_fmt ("Spent: $" ^ string_of_float (ether_spent ()) ^ "\n");
-  print_fmt
-    ( "Made (Liquid Revenue): $"
-    ^ string_of_float (ether_liquid_rev ())
-    ^ "\n" )
-
-(** [print_wealth_cmds un] Just displays the commands in the Wealth
-    screen to the user*)
-and print_wealth_cmds un =
-  (* doesn't have a clear screen param b/c is always called after "help"
-     or after showing the wealth *)
-  print_fmt "COMMANDS\n";
-  print_fmt "[0] - [quit]                             : Quit program\n";
-  print_fmt
-    "[1 <ff.ff>] - [buy <ff.ff>]              : Buy <ff.ff> Ether\n";
-  print_fmt
-    "[2 <ff.ff>] - [sell <ff.ff>]             : Sell <ff.ff> Ether\n";
-  print_fmt
-    "[3] - [restart]                          : Set \
-     own/worth/spent/rev to 0\n";
-  print_fmt
-    "[4] - [home]                             : Return to home\n"
-
-(** [recieve_wealth_cmds un] is a REPL that reads user's commands
-    (specified in [print_wealth_cmds]) and redirects user to function
-    that carries out that command*)
-and recieve_wealth_cmds un =
-  print_string "> ";
-  match
-    List.filter
-      (fun s -> s <> " ")
-      (Stringext.full_split (read_line ()) ' ')
-  with
-  | exception End_of_file -> ()
-  | [ "0" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ] ->
-      quit_prog ()
-  | [ "1"; flt ] | [ "buy"; flt ] -> (
-      let amt_ether = float_of_string flt in
-      (* since we bought, update the csv accordingly *)
-      try
-        wealth_bought amt_ether (just_cur_price ());
-        print_show_wealth false;
-        recieve_wealth_cmds ()
-      with InvalidEtherAmount s ->
-        print_fmt (s ^ "\n");
-        recieve_wealth_cmds () )
-  | [ "2"; flt ] | [ "sell"; flt ] -> (
-      let amt_ether = float_of_string flt in
-      try
-        wealth_sold amt_ether (just_cur_price ());
-        print_show_wealth false;
-        recieve_wealth_cmds ()
-      with
-      | InvalidEtherAmount s ->
-          print_fmt (s ^ "\n");
-          recieve_wealth_cmds ()
-      | InsufficientEtherInOwn s ->
-          print_fmt (s ^ "\n");
-          recieve_wealth_cmds () )
-  | [ "3" ] | [ "restart" ] ->
-      restart_wealth ();
-      print_show_wealth false;
-      recieve_wealth_cmds ()
-  | [ "4" ] | [ "home" ] ->
-      print_cmds true;
-      recieve_cmds ()
-  | [ "help" ] | [ "Help" ] ->
-      print_fmt "[Help]:\n";
-      print_wealth_cmds ();
-      recieve_wealth_cmds ()
-  | _ ->
-      print_fmt
-        "I could not understand your choice of command. Please try \
-         again, or type [help]\n";
-      recieve_wealth_cmds ()
 
 (** [yn_start ()] prompts user if they mean to enter the bot, calls
     [prompt_cmds ()] if "Y" and quits if "N". Repeats until desired
