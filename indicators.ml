@@ -36,7 +36,7 @@ let rep_ok d : dataset =
 let analyze d op =
   let d = Array.map snd d in
   match op with
-    | Low -> Array.fold_left min 0. d
+    | Low -> Array.fold_left min infinity d
     | High -> Array.fold_left max 0. d
     | Mean -> Array.fold_left (+.) 0. d 
       /. float_of_int (Array.length d)
@@ -61,7 +61,7 @@ let from_csv parsing_fcn file_name =
         | None -> acc |> scan
         | Some x -> x :: acc |> scan )
   in
-  scan [] |> Array.of_list
+  scan [] |> List.rev |> Array.of_list 
 
 (** a sample fcn to pass to from_csv*)
 let sample_fcn str =
@@ -83,8 +83,8 @@ let index_of d target =
   let rec helper low high =
     let m = (low + high) / 2 in
     if low <= high then
-      if fst d.(m) > target then helper (m + 1) high
-      else if fst d.(m) < target then helper low (m - 1)
+      if fst d.(m) < target then helper (m + 1) high
+      else if fst d.(m) > target then helper low (m - 1)
       else m
     else m
   in
@@ -103,12 +103,10 @@ let rec trim (d : dataset) start finish : dataset =
   let ind2 = index_of d finish in
   ind1 |> string_of_int |> print_endline;
   ind2 |> string_of_int |> print_endline;
-  let length = ind1 - ind2 in
+  let length = ind2 - ind1 in
   print_endline ("length is: " ^ (string_of_int length));
   let arr = Array.make length (-1, -1.) in
   for i = 0 to length - 1 do
-    print_endline ("i is: " ^ (string_of_int i));
-
     arr.(i) <- d.(ind2 + i)
   done;
   print_endline "trimming2";
@@ -130,7 +128,14 @@ let rec avgs_in_period_list d period time =
     else
       (analyze trimmed Mean) :: recurse
       
-
+let print_data d = 
+  let f = fun x -> "Time: " ^ 
+    (fst x |> string_of_int)
+    ^ " Price: "
+    ^ (snd x |> string_of_float)
+    |> print_endline
+    in
+    Array.iter f d
 (* [sma dataset period num_intervals time] is the SMA at time time of
    the dataset given the desired period and number of intervals to look
    back Require: time is in epoch time For example [sma dataset 86400 10
@@ -165,10 +170,11 @@ let rec ema d period num_periods time smoothing =
    lookback the desired amount and contains the time *)
 let stoch (d : dataset) lookback time =
   let trimmed = trim d (time - lookback) time in
-  let c = snd trimmed.(0) in
+  if Array.length trimmed = 0 then 0. else
+  let closing = snd trimmed.(Array.length trimmed - 1) in (* this might throw an error*)
   let low = analyze trimmed Low in
   let high = analyze trimmed High in
-  (c -. low) /. (high -. low) *. 100.
+  ((closing -. low) /. (high -. low)) *. 100.
 
 (* calculates adx Pushed to MS3*)
 let adx d = failwith "unimplemented"
@@ -182,7 +188,7 @@ let generate_datapoints (data : dataset) delay period : data_point array=
   and earliest = fst data.(Array.length data - 1)
   in let length = 2 * (latest - earliest) / period (* how many data points to create*)
   in let f i = begin (* index to data_point*)
-    let from = (i+1) * period / 2 + earliest in
+    let from = (i + 1) * period / 2 + earliest in
     (*  in let trimmed = 
       trim data from (from + period)
     in *)
@@ -211,6 +217,7 @@ let points_of_interest data delay period change =
   |> Array.to_list
   |> List.filter 
     (fun x -> (Float.abs x.price_change) > Float.abs change)
+
 
 let sma_accessible file_name = 0.0
 

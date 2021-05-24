@@ -58,7 +58,7 @@ val macd : dataset -> int -> float
    change after 1 hour, sampled every 5 minutes*)
 val generate_datapoints : dataset -> int -> int -> data_point array
 
-
+val print_data : dataset -> unit
 (* Custom indicators coming soon!*)
 
 (* for demo purposes *)

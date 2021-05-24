@@ -1,7 +1,5 @@
 open Indicators
 
-let x = ref 10
-
 let print_fmt str = ANSITerminal.(print_string [ magenta ] str)
 
 (** a function to parse the 1 min file*)
@@ -18,16 +16,16 @@ let parsing_fcn1 str =
         let time = String.split_on_char ':' (List.nth splitspace 1) in
         if time = [] then None
         else
-          (* let year = int_of_string (List.hd date) in
-          let month = int_of_string (List.nth date 1) in *)
+          let year = int_of_string (List.hd date) in
+          let month = int_of_string (List.nth date 1) in
           let day = int_of_string (List.nth date 2) in
           let hour = int_of_string (List.hd time) in
           let minute = int_of_string (List.nth time 1) in
           let second = int_of_string (List.nth time 2) in
           let price = float_of_string (List.nth splitcomma 4) in
           let epoch =
-            second + (60 * minute) + (3600 * hour) + (86400 * (day - 1))
-          in
+            second + (60 * minute) + (3600 * hour) 
+            + (86400 * (day - 1)) in
           let epochjan12021 = 1609477200 in
           Some (epochjan12021 + epoch, price)
 
@@ -62,7 +60,7 @@ print_fmt
   (specified in [print_wealth_cmds]) and redirects user to function
   that carries out that command*)
 and recieve_analyze_cmds d =
-(** todo remove this*)
+(** TODO remove this*)
   let d = from_csv parsing_fcn1 "ETH_1min_sample.csv" in
   print_string "> ";
   match
@@ -102,9 +100,24 @@ and recieve_analyze_cmds d =
       recieve_analyze_cmds d )
   end
 
+  | ["stoch"; lookback; time] -> begin
+    try 
+      stoch d (int_of_string lookback) (int_of_string time) 
+      |> string_of_float 
+      |> print_endline; 
+      recieve_analyze_cmds d
+    with 
+    | Failure "int_of_string" -> (print_fmt
+      "Usage: stoch <lookback> <time> as integers \n";
+      recieve_analyze_cmds d )
+  end
   | [ "help" ] | [ "Help" ] ->
       print_analyze_cmds ();
       recieve_analyze_cmds d
+  (* a debugging command that won't be officially documented*) 
+  | [ "print" ; "data"] -> 
+    print_data d;
+    recieve_analyze_cmds d
   | _ ->
       print_fmt
         "I could not understand your choice of command. Please try \
