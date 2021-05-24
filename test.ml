@@ -1,8 +1,11 @@
 open OUnit2
 open Ether_scan_processing
+open Ascii_graph
 
 let format_date_test name str month day year : test =
   name >:: fun _ -> assert_equal str (format_date month day year)
+
+let pp_string s = "\"" ^ s ^ "\""
 
 let format_date_tests =
   [
@@ -42,6 +45,8 @@ let convert_time_stamp_tests =
       "1000000000 is 09:46:40 on September 8th 2001"
       "21:46:40 on September 8th 2001" "1000000000";
   ]
+
+let graph_test 
 
 let suite =
   "test suite for final project"
