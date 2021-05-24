@@ -184,11 +184,6 @@ let stoch (d : dataset) lookback time =
   let closing = snd trimmed.(Array.length trimmed - 1) in (* this might throw an error*)
   let low = analyze trimmed Low in
   let high = analyze trimmed High in
-  let x = print_endline (string_of_int (lookback)) in
-  (* let x = print_endline (string_of_int (time)) in *)
-
-  let x = print_endline (string_of_int (Array.length trimmed)) in
-
   ((closing -. low) /. (high -. low)) *. 100.
 let sma_accessible d = 
   let latest = d (* latest data point in d*)

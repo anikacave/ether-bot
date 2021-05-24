@@ -35,6 +35,7 @@ let one_min_sample_parsing str =
   (* rudimentary weighting of three indicators for
   a price prediction*)
 let predict sma stoch adx macd = 
+  100. /.
   (stoch -. 60.) *. 0.25
   |> (+.) @@ (adx) *. 0.437
   |> (+.) @@ macd *. 0.2
@@ -54,12 +55,19 @@ let suggestion () =
   in let adx = adx_accessible d
   in let macd = macd_accessible d
 
-  in predict sma stoch adx macd
-  |> string_of_float
-  |> (^) "Expecting price change of: "
-  |> (^) @@ "SMA: " ^ (string_of_float sma)
-  |> (^) (string_of_float stoch)
-  |> (^) (string_of_float adx)
-  |> (^) (string_of_float macd)
-
-  
+  in let p = predict sma stoch adx macd in
+  begin
+    if p > 20. then "BUY\n"
+    else if p < -20. then "SELL\n"
+    else "HOLD\n"
+  end ^ 
+  begin
+    p 
+    |> string_of_float
+    |> (^) "\nExpecting price change of: "
+    |> (^) @@ " SMA: " ^ (string_of_float sma)
+    |> (^) @@ " Stoch: " ^ (string_of_float stoch)
+    |> (^) @@ " Adx: " ^ (string_of_float adx)
+    |> (^) @@ " Macd: " ^ (string_of_float macd)
+    |> (^) @@ "Current Indicator values: \n"
+  end
