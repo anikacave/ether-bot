@@ -1,12 +1,9 @@
 (** this file calculates indicator values from raw price data *)
 
-(* a list of tuples of epoch time and USD price from csv_data_bot
-   Requires: the time is ordered from newest to oldest *)
-
 (* represents the raw data to calculate indicators from *)
-
 type dataset
 
+(* set of indicators corresponding to a certain price change*)
 type data_point = 
    {
    price_change : float;
@@ -16,42 +13,59 @@ type data_point =
    macd : float;
    }
 
+(* represents an empty dataset *)
 val empty_data : dataset
 
-(** parses a csv file and constructs a dataset formatter describes how to
-   parse each line into a tuple [from_csv formatter file_name] is a
-   dataset from the file*)
+(** parses a csv file and constructs a dataset.
+   [formatter] describes how to parse each line of the file
+   [filename] is the name of the csv file to read
+   [from_csv formatter filename] is dataset from the specified file*)
 val from_csv : (string -> (int * float) option) -> string -> dataset
-
-(** a sample fcn to pass to from_csv*)
-val sample_fcn : string -> ( int * float ) option
 
 (** constructs a dataset from a list of tuples *)
 val from_tuple_list : (int * float) list -> dataset
 
-(** returns a subset of the dataset from [trim dataset begin_time
-   end_time] is a dataset including datapoints between begin and end. If
-   the dataset contains datapoints for begin and end, then they will be
-   included. If not, the next most recent datapoint will be included
-   (round down). {param} begin_time is in epoch time {param} end_time is
-   in epoch time *)
+(**
+   [trim dataset begin_time end_time] is a dataset including 
+   datapoints between begin_time and end_time. If the dataset
+   contains datapoints for begin and end, then they will be
+   included. If not, the next most recent datapoint will be 
+   included (round down). Both time parameters are in epoch time *)
 val trim : dataset -> int -> int -> dataset
 
-(** [sma dataset period num_periods time] *)
+(** [sma dataset period num_periods time] is the sma
+   [period] is the length of the period to look in seconds
+   [num_periods] is the number of intervals to average
+   [time] is where the function will look back from.
+   For example, the range of relevant data will be between
+   (time - period * num_periods..., time). For example 
+   [sma dataset 86400 10 1619582400] returns the 10 day daily average starting from April 28th
+   2021 GMT (April 19th to 28th)
+   *)
 val sma : dataset -> int -> int -> int -> float
 
-(** [ema dataset period num_periods time] *)
-val ema : dataset -> int -> int -> int -> float -> float
+(**[ema dataset period num_periods time smoothing]
+   Similar documentation to sma but there is an optional
+   smoothing argument. Default smoothing is 2.
+*)
+val ema : dataset -> int -> int -> int 
+   -> ?smoothing: float -> float
 
-(** [stoch data lookback time] is the stochastic oscillator (indicator) with a lookback
-   period of 14 days and with closing time of ~11:59*)
+(** [stoch data lookback time] is the stochastic oscillator 
+   indicator with a lookback period of 14 days 
+   and with closing time of ~11:59.
+   Data between (time - lookback to time) will be analyzed *)
 val stoch : dataset -> int -> int -> float
 
 (** calculates adx *)
 val adx : dataset -> float
 
-(** calculates macd. comparing 12 day vs 26 day ema *)
-val macd : dataset -> int -> float
+(* [macd d period time] calculates the macd by 
+  comparing the 12 period ema with the 26 period ema
+  [period] is the desired period length in seconds
+  time is when to look back from. Relevant data
+  ranges from (time - 26*period) to time*)
+val macd : dataset -> int -> int -> float
 
 (** From the dataset, pairs the value of four indicators with 
    the price change after [delay] seconds
@@ -61,8 +75,15 @@ val macd : dataset -> int -> float
    change after 1 hour, sampled every 5 minutes*)
 val generate_datapoints : dataset -> int -> int -> data_point array
 
+(** formats a data point into a human readable string*)
+val string_of_data_point : data_point -> string
+
+(** prints the specified dataset to the console.
+   Mostly available as a debugging function *)
 val print_data : dataset -> unit
-(** Custom indicators coming soon!*)
+
+
+(* Custom indicators coming soon!*)
 
 (* for demo purposes *)
 val sma_accessible : string -> float

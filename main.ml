@@ -75,12 +75,6 @@ let str_how_much_would_have_made () =
 (* ANSITerminal formatting*)
 let print_fmt str = ANSITerminal.(print_string [ magenta ] str)
 
-(* NOW THIS IS IN csv_writer.ml : (** [update_create_csv ()] deals with
-   making the csv if it does not exist, else just updates it. The name
-   is: ether_data.csv*) let update_create_csv un = if Sys.file_exists
-   filename then safe_update_csv filename true else create_csv filename
-   true *)
-
 (** [print_cmds ()] prints the possible commands *)
 let print_cmds erase_screen =
   if erase_screen then (
