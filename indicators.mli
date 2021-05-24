@@ -57,8 +57,11 @@ val ema : dataset -> int -> int -> int
    Data between (time - lookback to time) will be analyzed *)
 val stoch : dataset -> int -> int -> float
 
-(** calculates adx *)
-val adx : dataset -> float
+(** [adx data period time] is the average directional
+   index of the period calculated with
+   [period] in seconds and 
+   looking back from [time] in epoch time*)
+val adx : dataset -> int -> int -> float
 
 (* [macd d period time] calculates the macd by 
   comparing the 12 period ema with the 26 period ema
@@ -78,10 +81,14 @@ val generate_datapoints : dataset -> int -> int -> data_point array
 (** formats a data point into a human readable string*)
 val string_of_data_point : data_point -> string
 
+(** returns data_points with a change greater than the specified change
+   [points_of_interest data delay period change]*)
+val points_of_interest : dataset -> int -> int -> float -> data_point list
+
+
 (** prints the specified dataset to the console.
    Mostly available as a debugging function *)
 val print_data : dataset -> unit
-
 
 (* Custom indicators coming soon!*)
 

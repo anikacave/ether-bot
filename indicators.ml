@@ -25,12 +25,12 @@ type op =
 
 (* checks that the dataset is in chronological order with no dupes*)
 let rep_ok d : dataset =
-  for i = 0 to Array.length d - 2 do
+  (* for i = 0 to Array.length d - 2 do
     if fst d.(i) > fst d.(i + 1) then
       failwith "dataset rep invariant violated in indicators.ml"
     else ()
   done;
-  print_endline "rep ok";
+  print_endline "rep ok"; *)
   d
 
 let analyze d op =
@@ -59,15 +59,6 @@ let from_csv parsing_fcn file_name =
         | Some x -> x :: acc |> scan )
   in
   scan [] |> List.rev |> Array.of_list 
-
-(** a sample fcn to pass to from_csv*)
-let sample_fcn str =
-  let vals = String.split_on_char ',' str in
-  try
-    Some
-      ( List.nth vals 0 |> int_of_string,
-        List.nth vals 1 |> float_of_string )
-  with Failure _ -> None
 
 (* constructs a dataset from a list of tuples *)
 let from_tuple_list (lst : (int * float) list) : dataset = 
@@ -102,10 +93,13 @@ let rec trim (d : dataset) start finish : dataset =
   ind2 |> string_of_int |> print_endline;
   let length = ind2 - ind1 in
   print_endline ("length is: " ^ (string_of_int length));
-  let arr = Array.make length (-1, -1.) in
-  for i = 0 to length - 1 do
-    arr.(i) <- d.(ind2 + i)
-  done;
+  print_endline ("length of d is: " ^ (string_of_int (Array.length d)));
+  print_endline ("ind2 is:  " ^ (string_of_int ind2));
+  (*pog? TODO fix this duct tape *)
+  let arr = Array.init length (fun i -> 
+    try d.(ind2 + i)
+    with Invalid_argument _ -> (0, 0.)
+  ) in
   print_endline "trimming2";
   print_endline (Array.length arr |> string_of_int);
   arr |> rep_ok
@@ -206,16 +200,22 @@ let macd d period time =
   ema d 12 12 time ~smoothing:2. 
   -. ema d 26 26 time ~smoothing:2. 
  
-let generate_datapoints (data : dataset) delay period : data_point array= 
+let generate_datapoints (data : dataset) delay period : data_point array = 
+  (* array size safety. If empty, empty data_point*)
+  if (Array.length data = 0) then Array.make 0 {
+    price_change = 0.;
+    sma = 0.; (* sma of the last 48 hours*)
+    stoch = 0.; (* stoch of the last day*)
+    adx = 0.;
+    macd = 0.;
+  } else
   let latest = fst data.(Array.length data - 1)
-  and earliest = fst data.(Array.length data - 1)
+  and earliest = fst data.(0)
   in let length = 2 * (latest - earliest) / period (* how many data points to create*)
   in let f i = begin (* index to data_point*)
-    let from = (i + 1) * period / 2 + earliest in
-    (*  in let trimmed = 
-      trim data from (from + period)
-    in *)
-    let new_price = (from + delay) (* price after a delay*)
+    let from = earliest
+    |> (+) (i * period / 2)
+    in let new_price = (from + delay) (* price after a delay*)
     |> index_of data 
     |> Array.get data
     |> snd
@@ -227,7 +227,7 @@ let generate_datapoints (data : dataset) delay period : data_point array=
     price_change = (new_price -. old_price) /. old_price;
     sma = sma data 3600 48 from; (* sma of the last 48 hours*)
     stoch = stoch data 86400 from; (* stoch of the last day*)
-    adx = 0.;
+    adx = adx data 86400 from;
     macd = macd data 86400 from;
     }
   end
@@ -236,6 +236,10 @@ let generate_datapoints (data : dataset) delay period : data_point array=
   (** filters the points of interest where the price change
   is greater than the specified change*)
 let points_of_interest data delay period change = 
+  generate_datapoints data delay period
+  |> Array.length 
+  |> string_of_int
+  |> print_endline;
   generate_datapoints data delay period
   |> Array.to_list
   |> List.filter 
@@ -247,8 +251,6 @@ let string_of_data_point (data_point : data_point) =
   ^ " Stoch: " ^ string_of_float data_point.stoch
   ^ " ADX: " ^ string_of_float data_point.adx
   ^ " MACD: " ^ string_of_float data_point.macd
-
-
 let sma_accessible file_name = 0.0
 
 let ema_accessible file_name = 0.0

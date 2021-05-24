@@ -112,6 +112,37 @@ and recieve_analyze_cmds d =
       "Usage: stoch <lookback> <time> as integers \n";
       recieve_analyze_cmds d )
   end
+  | ["adx"; period; time] -> begin
+    try 
+      adx d (int_of_string period) (int_of_string time) 
+      |> string_of_float 
+      |> print_endline; 
+      recieve_analyze_cmds d
+    with 
+    | Failure "int_of_string" -> (print_fmt
+      "Usage: stoch <period_length> <time> as integers \n";
+      recieve_analyze_cmds d )
+  end
+  | ["macd"; period; time] -> begin
+    try 
+      macd d (int_of_string period) (int_of_string time) 
+      |> string_of_float 
+      |> print_endline; 
+      recieve_analyze_cmds d
+    with 
+    | Failure "int_of_string" -> (print_fmt
+      "Usage: macd <period_length> <time> as integers \n";
+      recieve_analyze_cmds d )
+  end
+  | ["poi"; delay; period; change] -> 
+    points_of_interest d (int_of_string delay)
+    (int_of_string period)
+    (float_of_string change)
+    |> List.iter (fun dp -> 
+      string_of_data_point dp
+      |> print_endline);
+      recieve_analyze_cmds d
+
   | [ "help" ] | [ "Help" ] ->
       print_analyze_cmds ();
       recieve_analyze_cmds d
