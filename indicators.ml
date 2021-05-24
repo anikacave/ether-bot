@@ -36,9 +36,12 @@ let rep_ok d : dataset =
 let analyze d op =
   let d = Array.map snd d in
   match op with
-    | Low -> Array.fold_left min infinity d
+    (*don't hard code this but Float.infinity doesn't work*)
+    | Low -> Array.fold_left min 696969696969420. d
     | High -> Array.fold_left max 0. d
-    | Mean -> Array.fold_left (+.) 0. d 
+    | Mean -> 
+      if(Array.length d = 0) then 0.
+      else Array.fold_left (+.) 0. d 
       /. float_of_int (Array.length d)
     | Sum -> Array.fold_left (+.) 0. d 
 
@@ -74,7 +77,8 @@ let index_of d target =
       if fst d.(m) < target then helper (m + 1) high
       else if fst d.(m) > target then helper low (m - 1)
       else m
-    else m
+    else 
+      m
   in
   let low = 0 in
   let high = Array.length d - 1 in
@@ -86,7 +90,7 @@ let index_of d target =
 let rec trim (d : dataset) start finish : dataset =
   print_endline ("start is: " ^ (string_of_int start));
   print_endline ("finish is: " ^ (string_of_int finish));
-  print_endline "trimming";
+  print_endline "finding indices...";
   let ind1 = index_of d start in
   let ind2 = index_of d finish in
   ind1 |> string_of_int |> print_endline;
@@ -97,8 +101,9 @@ let rec trim (d : dataset) start finish : dataset =
   print_endline ("ind2 is:  " ^ (string_of_int ind2));
   (*pog? TODO fix this duct tape *)
   let arr = Array.init length (fun i -> 
-    try d.(ind2 + i)
-    with Invalid_argument _ -> (0, 0.)
+    d.(ind1 + i)
+    (* try d.(ind2 + i)
+    with Invalid_argument _ -> (0, 0.) *)
   ) in
   print_endline "trimming2";
   print_endline (Array.length arr |> string_of_int);
@@ -145,8 +150,9 @@ let rec sma d period num_intervals time =
    (** TODO fix array to list conversions *)
 
 let rec ema d period num_periods time ?(smoothing = 2.) =
-  if num_periods <= 0 then 0. else
+  if num_periods <= 0 || time <= fst d.(0) then 0. else
   let trimmed = trim d (time - period) time in 
+  print_endline @@ "not 0: " ^ string_of_float ((float_of_int num_periods +. 1.));
   let k = smoothing /. (float_of_int num_periods +. 1.) in
     (analyze trimmed Mean) *. k
     +. (ema d period (num_periods - 1) (time - period) 
@@ -184,21 +190,36 @@ let adx d period time =
     in if up_move > 0. then up_move else 0.
     (** TODO implement fully*)
   in let atr period time = 
-    let high = analyze (trim d (time - period) time) High 
+    let trimmed = (trim d (time - period) time)
+    in let high = analyze trimmed High 
     and low = analyze (trim d (time - period) time) Low
-    and closing = snd d.(Array.length d - 1)
-    in (high -. low)
+    and closing = 
+      if Array.length trimmed = 0 
+      then Float.neg_infinity
+      else
+        (Array.length trimmed - 1)
+        |> Array.get trimmed
+        |> snd 
+    in
+    assert (high <> Float.infinity);
+    assert (low <> Float.infinity);
+    assert (closing <> Float.infinity);
+    (high -. low)
     |> max (Float.abs (high -. closing))
     |> max (Float.abs (low -. closing))
-  in
-  (pos_dm period time -. neg_dm period time)
-  |> (/.) (atr period time)
+  in 
+    assert ((pos_dm period time) <> Float.infinity);
+    assert ((neg_dm period time) <> Float.infinity);
+    assert ((pos_dm period time -. neg_dm period time) <> 0.);
+    (* assert ((atr period time) <> 0.); *)
+    (atr period time)
+    |> (/.) (pos_dm period time -. neg_dm period time)
 
 let macd d period time = 
   (*TODO: Calculate a nine-period EMA of
   of this result?*)
-  ema d 12 12 time ~smoothing:2. 
-  -. ema d 26 26 time ~smoothing:2. 
+  ema d period 12 time ~smoothing:2. 
+  -. ema d period 26 time ~smoothing:2. 
  
 let generate_datapoints (data : dataset) delay period : data_point array = 
   (* array size safety. If empty, empty data_point*)
@@ -227,7 +248,11 @@ let generate_datapoints (data : dataset) delay period : data_point array =
     price_change = (new_price -. old_price) /. old_price;
     sma = sma data 3600 48 from; (* sma of the last 48 hours*)
     stoch = stoch data 86400 from; (* stoch of the last day*)
-    adx = adx data 86400 from;
+    (* adx = 0.;
+    macd = 0.; *)
+    adx = 
+      if adx data 86400 from <> Float.infinity then 
+        adx data 86400 from else failwith "calculated infinity";
     macd = macd data 86400 from;
     }
   end
@@ -242,8 +267,10 @@ let points_of_interest data delay period change =
   |> print_endline;
   generate_datapoints data delay period
   |> Array.to_list
-  |> List.filter 
-    (fun x -> (Float.abs x.price_change) > Float.abs change)
+  |> List.filter @@
+    if change > 0. then
+      (fun x -> (x.price_change) > change)
+      else (fun x -> x.price_change < change)
 
 let string_of_data_point (data_point : data_point) = 
   "Price change: " ^ string_of_float data_point.price_change
