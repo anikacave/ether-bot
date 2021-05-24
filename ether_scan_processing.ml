@@ -77,7 +77,6 @@ let convert_time_stamp str =
       ^ " on "
       ^ format_date month day (year + 1900)
 
-(* CLEAN THIS UP LATER*)
 let readable_to_unix str =
   let splitcomma = String.split_on_char ',' str in
   let splitspace = String.split_on_char ' ' (List.hd splitcomma) in
@@ -105,16 +104,22 @@ let get_price_time un =
   match pair with
   | price, time -> (convert_cur_price price, convert_time_stamp time)
 
-let just_cur_price un = 
-  fst (get_price_time ())
 (** [formatted_str_price_time ()] returns a cleanly formatted string of
     the form "Current Price: <price>\nAt Time: <time stamp>" (TBD), for
     printing to UI*)
+let just_cur_price un = fst (get_price_time ())
+
+let format_price price =
+  let in_cents = price *. 100. in
+  let int_cents = int_of_float in_cents in
+  if int_cents mod 10 = 0 then string_of_float price ^ "0"
+  else string_of_float price
+
 let formatted_str_price_time un =
   let pair = get_price_time un in
   match pair with
   | price, time ->
-      "Current Price: $" ^ string_of_float price ^ "\nAt Time " ^ time
+      "Current Price: $" ^ format_price price ^ "\nAt Time " ^ time
 
 (** [csv_bot_price_time ()] returns a CSV-friendly string of the form
     ["epoch_time, price"]*)
@@ -126,7 +131,7 @@ let csv_bot_price_time un =
     form ["hh:mm:ss on month day year, price"]*)
 let csv_readable_price_time un =
   let pair = get_price_time un in
-  match pair with price, time -> time ^ ", " ^ string_of_float price
+  match pair with price, time -> time ^ ", " ^ format_price price
 
 (** [csv_readable_price_time ()] returns a CSV-friendly string of the
     form ["hh:mm:ss month day year, price"]*)
@@ -136,4 +141,4 @@ let csv_readable_price_time un =
   | price, time ->
       String.(sub time 0 8)
       ^ String.(sub time 11 (length time - 11))
-      ^ ", " ^ string_of_float price
+      ^ ", " ^ format_price price

@@ -107,6 +107,9 @@ let index_of_tests =
 
 let indicator_tests = List.flatten [ index_of_tests ]
 
+let data =
+  from_csv one_min_sample_parsing "test_ether_data.csv" |> rep_ok
+
 let suite =
   "test suite for final project"
   >::: List.flatten
