@@ -38,7 +38,9 @@ val trim : dataset -> int -> int -> dataset
    [num_periods] is the number of intervals to average
    [time] is where the function will look back from.
    For example, the range of relevant data will be between
-   (time - period * num_periods..., time)
+   (time - period * num_periods..., time). For example 
+   [sma dataset 86400 10 1619582400] returns the 10 day daily average starting from April 28th
+   2021 GMT (April 19th to 28th)
    *)
 val sma : dataset -> int -> int -> int -> float
 
@@ -58,8 +60,12 @@ val stoch : dataset -> int -> int -> float
 (** calculates adx *)
 val adx : dataset -> float
 
-(** calculates macd. comparing 12 day vs 26 day ema *)
-val macd : dataset -> int -> float
+(* [macd d period time] calculates the macd by 
+  comparing the 12 period ema with the 26 period ema
+  [period] is the desired period length in seconds
+  time is when to look back from. Relevant data
+  ranges from (time - 26*period) to time*)
+val macd : dataset -> int -> int -> float
 
 (** From the dataset, pairs the value of four indicators with 
    the price change after [delay] seconds
@@ -69,9 +75,13 @@ val macd : dataset -> int -> float
    change after 1 hour, sampled every 5 minutes*)
 val generate_datapoints : dataset -> int -> int -> data_point array
 
+(** formats a data point into a human readable string*)
+val string_of_data_point : data_point -> string
+
 (** prints the specified dataset to the console.
    Mostly available as a debugging function *)
 val print_data : dataset -> unit
+
 
 (* Custom indicators coming soon!*)
 

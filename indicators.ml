@@ -133,11 +133,7 @@ let print_data d =
     |> print_endline
     in
     Array.iter f d
-(* [sma dataset period num_intervals time] is the SMA at time time of
-   the dataset given the desired period and number of intervals to look
-   back Require: time is in epoch time For example [sma dataset 86400 10
-   1619582400] returns the 10 day daily average starting from April 28th
-   2021 GMT (April 19th to 28th) *)
+
 let rec sma d period num_intervals time =
   let trimmed_data = trim d (time - (period * num_intervals)) time in
   let averages = avgs_in_period_list trimmed_data period time in
@@ -175,23 +171,41 @@ let stoch (d : dataset) lookback time =
   let high = analyze trimmed High in
   ((closing -. low) /. (high -. low)) *. 100.
 
-(* calculates adx Pushed to MS3*)
-let adx d = 
-  failwith "unimplemented"
-  (* let pos_DI = 1
-  and neg_DI = 1
-  and  *)
+let adx d period time = 
+  (* pos directional movement of two periods looking
+  back from time*)
+  let pos_dm period time = 
+    let curr_high = 
+      analyze (trim d (time - period) time) High
+    and prev_high = 
+      analyze (trim d (time - 2 * period) (time - period)) High
+    in let up_move = curr_high -. prev_high
+    in if up_move > 0. then up_move else 0.
+  and neg_dm period time = 
+    let curr_low = 
+      analyze (trim d (time - period) time) Low
+    and prev_low = 
+      analyze (trim d (time - 2 * period) (time - period)) Low
+    in let up_move = curr_low -. prev_low
+    in if up_move > 0. then up_move else 0.
+    (** TODO implement fully*)
+  in let atr period time = 
+    let high = analyze (trim d (time - period) time) High 
+    and low = analyze (trim d (time - period) time) Low
+    and closing = snd d.(Array.length d - 1)
+    in (high -. low)
+    |> max (Float.abs (high -. closing))
+    |> max (Float.abs (low -. closing))
+  in
+  (pos_dm period time -. neg_dm period time)
+  |> (/.) (atr period time)
 
-(* [macd d period time] calculates the macd by 
-  comparing the 12 period ema with the 26 period ema
-  [period] is the desired period length in seconds
-  time is when to look back from. Relevant data
-  ranges from (time - 26*period) to time*)
 let macd d period time = 
   (*TODO: Calculate a nine-period EMA of
   of this result?*)
   ema d 12 12 time ~smoothing:2. 
-  -. ema d 26 26 time ~smoothing:2.  
+  -. ema d 26 26 time ~smoothing:2. 
+ 
 let generate_datapoints (data : dataset) delay period : data_point array= 
   let latest = fst data.(Array.length data - 1)
   and earliest = fst data.(Array.length data - 1)
@@ -226,6 +240,13 @@ let points_of_interest data delay period change =
   |> Array.to_list
   |> List.filter 
     (fun x -> (Float.abs x.price_change) > Float.abs change)
+
+let string_of_data_point (data_point : data_point) = 
+  "Price change: " ^ string_of_float data_point.price_change
+  ^ " SMA: " ^ string_of_float data_point.sma
+  ^ " Stoch: " ^ string_of_float data_point.stoch
+  ^ " ADX: " ^ string_of_float data_point.adx
+  ^ " MACD: " ^ string_of_float data_point.macd
 
 
 let sma_accessible file_name = 0.0
