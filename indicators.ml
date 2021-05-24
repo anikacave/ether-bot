@@ -33,19 +33,6 @@ let rep_ok d : dataset =
   print_endline "rep ok";
   d
 
-let analyze d op =
-  let d = Array.map snd d in
-  match op with
-    (*don't hard code this but Float.infinity doesn't work*)
-    | Low -> Array.fold_left min 696969696969420. d
-    | High -> Array.fold_left max 0. d
-    | Mean -> 
-      if(Array.length d = 0) then 0.
-      else Array.fold_left (+.) 0. d 
-      /. float_of_int (Array.length d)
-    | Sum -> Array.fold_left (+.) 0. d 
-
-
 let from_csv parsing_fcn file_name =
   (* TODO consider optimizing from O(2n) to O(n)*)
   let input_stream = open_in file_name in
@@ -86,7 +73,7 @@ let index_of d target =
   let high = Array.length d - 1 in
   helper low high
 
-(* returns a subset of the dataset from [trim dataset begin end] is a
+  (* returns a subset of the dataset from [trim dataset begin end] is a
    dataset including datapoints between begin and end INCLUSIVE begin
    and end should be in epoch time *)
 let rec trim (d : dataset) start finish : dataset =
@@ -110,10 +97,36 @@ let rec trim (d : dataset) start finish : dataset =
   (* print_endline "trimming2";
   print_endline (Array.length arr |> string_of_int); *)
   arr |> rep_ok
-  
 (* returns a list containing the average price within each period the
    length of the list should be num_intervals. Earlier averages are at
    the head *)
+
+
+
+let analyze d op =
+let d = Array.map snd d in
+match op with
+  (*don't hard code this but Float.infinity doesn't work*)
+  | Low -> Array.fold_left min 696969696969420. d
+  | High -> Array.fold_left max 0. d
+  | Mean -> 
+    if(Array.length d = 0) then 0.
+    else Array.fold_left (+.) 0. d 
+    /. float_of_int (Array.length d)
+  | Sum -> Array.fold_left (+.) 0. d 
+
+let high d start finish : float = 
+  let trimmed = trim d start finish in 
+  analyze trimmed High
+
+let low d start finish : float = 
+  let trimmed = trim d start finish in 
+  analyze trimmed Low
+
+let mean d start finish : float = 
+  let trimmed = trim d start finish in 
+  analyze trimmed Mean
+
 let rec avgs_in_period_list d period time =
   if 
     Array.length d = 0 then [] 
@@ -121,7 +134,8 @@ let rec avgs_in_period_list d period time =
     fst d.(Array.length d - 1) > time then []
   else 
     let trimmed = trim d (time - period) time in
-    let recurse = avgs_in_period_list d period (time - period) in
+    let recurse = 
+      avgs_in_period_list d period (time - period) in
     if Array.length trimmed = 0 then recurse
     else
       (analyze trimmed Mean) :: recurse
