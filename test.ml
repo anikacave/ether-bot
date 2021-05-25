@@ -18,7 +18,8 @@
    wrote all our test cases.
 
    Once we test that our indicators are correct, we can be assured of
-   the "correctness" of the bot*)
+   the "correctness" of the bot, insofar as that it has the correct
+   inputs.*)
 
 open OUnit2
 open Ether_scan_processing
