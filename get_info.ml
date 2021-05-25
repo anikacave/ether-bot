@@ -22,7 +22,7 @@ let print_fmt str = ANSITerminal.(print_string [ magenta ] str)
 let rec print_show_info erase_screen =
   if erase_screen then (
     ANSITerminal.(erase Screen);
-    ANSITerminal.set_cursor 1 1)
+    ANSITerminal.set_cursor 1 1 )
   else ();
   print_fmt "Info Module\n"
 
@@ -37,6 +37,7 @@ and print_info_cmds () =
      commands again \n"
 
 and recieve_info_cmds () =
+  print_string "> ";
   match
     List.filter
       (fun s -> s <> " ")
