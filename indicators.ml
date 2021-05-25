@@ -99,6 +99,9 @@ let rec trim (d : dataset) start finish : dataset =
    length of the list should be num_intervals. Earlier averages are at
    the head *)
 
+(** returns the desired operation op (a set of potential operations one
+    can do on a dataset including the highest price, lowest price, mean
+    price, and sum of the prices) on the datase *)
 let analyze d op =
   let d = Array.map snd d in
   match op with
@@ -172,9 +175,9 @@ let rec ema d period num_periods time ?(smoothing = 2.) =
 let stoch (d : dataset) lookback time =
   let trimmed = trim d (time - lookback) time in
   if Array.length trimmed = 0 then 0.
+  else if Array.length trimmed <= 1 then 0.
   else
     let closing = snd trimmed.(Array.length trimmed - 1) in
-    (* this might throw an error*)
     let low = analyze trimmed Low in
     let high = analyze trimmed High in
     (closing -. low) /. (high -. low) *. 100.
