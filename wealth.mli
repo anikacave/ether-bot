@@ -1,3 +1,6 @@
+(** Allows user to simmulate buying and selling Ether, and accessing
+    bot's prediction*)
+
 (** The type filename *)
 type filename = string
 
@@ -75,9 +78,7 @@ val ether_own_sub : amount_ether -> amount_ether
     and returns the new value*)
 val ether_spent_add : amount_ether -> price -> spent
 
-(** NOTE: new decision, should not be subtracting spent. Instead add a
-    new variable, liquid_rev, that increases each time you make a sale
-    [ether_spent_sub amt_ether cur_price] updates the log file to
+(** [ether_spent_sub amt_ether cur_price] updates the log file to
     reflect recent Ether sells. Updates the spent of ether in log, and
     returns the new value*)
 val ether_spent_sub : amount_ether -> price -> spent

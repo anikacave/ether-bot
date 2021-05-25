@@ -1,3 +1,25 @@
+(* TEST PLAN:
+
+   Much of our system's functionality was tested manually. That is,
+   everything in Main, anything that updates a CSV, etc. This is because
+   writing tests to check if a CSV has updated requires handling a CSV,
+   which is what we're trying to test. Also, user interaction with Main
+   can't easily be simulated by tests.
+
+   We mainly wrote test cases for processing inputs, formatting data,
+   and indicators. Our indicators power the bot and are the most
+   computationally intensive part of the project. So we manually
+   calculated a few indicators based on our data file
+   (ETH_1min_sample.csv), and made sure our indicators file correctly
+   calculated these indicators.
+
+   Our system does not lend itself to random testing, because much of
+   the computation depends on data written to a file. So we manually
+   wrote all our test cases.
+
+   Once we test that our indicators are correct, we can be assured of
+   the "correctness" of the bot*)
+
 open OUnit2
 open Ether_scan_processing
 open Ascii_graph

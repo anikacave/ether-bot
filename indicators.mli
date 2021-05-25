@@ -1,9 +1,9 @@
 (** this file calculates indicator values from raw price data *)
 
-(* represents the raw data to calculate indicators from *)
+(** represents the raw data to calculate indicators from *)
 type dataset
 
-(* set of indicators corresponding to a certain price change*)
+(** set of indicators corresponding to a certain price change*)
 type data_point = {
   price_change : float;
   sma : float;
@@ -12,12 +12,12 @@ type data_point = {
   macd : float;
 }
 
-(* represents an empty dataset *)
+(** represents an empty dataset *)
 val empty_data : dataset
 
-(** ensures the representation invariant holds for datsets Normally this
-    would not be in the interface, but it is needed to call in our test
-    suite*)
+(** [rep_ok dataset] ensures the representation invariant holds for
+    datsets. Normally this would not be in the interface, but it is
+    needed to call in our test suite*)
 val rep_ok : dataset -> dataset
 
 (** The index of the epoch time in the dataset. If the dataset does not
@@ -31,15 +31,20 @@ val index_of : dataset -> int -> int
     start and finish interval in the dataset*)
 val high : dataset -> int -> int -> float
 
+(** [low data start finish] is the lowest price attained between the
+    start and finish interval in the dataset*)
 val low : dataset -> int -> int -> float
 
+(** [mean data start finish] is the mean price attained between the
+    start and finish interval in the dataset*)
 val mean : dataset -> int -> int -> float
 
-(** parses a csv file and constructs a dataset. [formatter] describes
-    how to parse each line of the file [filename] is the name of the csv
-    file to read [from_csv formatter filename] is dataset from the
-    specified file Requires: the file sorts datapoints in chronological
-    order where the latest values are first*)
+(** [from_csv formatter filename] parses a csv file and constructs a
+    dataset. [formatter] describes how to parse each line of the file
+    [filename] is the name of the csv file to read
+    [from_csv formatter filename] is dataset from the specified file
+    Requires: the file sorts datapoints in chronological order where the
+    latest values are first*)
 val from_csv : (string -> (int * float) option) -> string -> dataset
 
 (** constructs a dataset from a list of tuples *)
@@ -76,10 +81,10 @@ val stoch : dataset -> int -> int -> float
     [time] in epoch time*)
 val adx : dataset -> int -> int -> float
 
-(* [macd d period time] calculates the macd by comparing the 12 period
-   ema with the 26 period ema [period] is the desired period length in
-   seconds time is when to look back from. Relevant data ranges from
-   (time - 26*period) to time*)
+(** [macd d period time] calculates the macd by comparing the 12 period
+    ema with the 26 period ema [period] is the desired period length in
+    seconds time is when to look back from. Relevant data ranges from
+    (time - 26*period) to time*)
 val macd : dataset -> int -> int -> float
 
 (** From the dataset, pairs the value of four indicators with the price
@@ -103,13 +108,17 @@ val print_data : dataset -> unit
 
 (* Custom indicators coming soon!*)
 
-(* Finds the last possible indicator values with default settings *)
+(** Finds the last possible indicator values with default settings *)
 val sma_accessible : dataset -> float
 
+(** Finds the last possible indicator values with default settings *)
 val ema_accessible : dataset -> float
 
+(** Finds the last possible indicator values with default settings *)
 val stoch_accessible : dataset -> float
 
+(** Finds the last possible indicator values with default settings *)
 val adx_accessible : dataset -> float
 
+(** Finds the last possible indicator values with default settings *)
 val macd_accessible : dataset -> float

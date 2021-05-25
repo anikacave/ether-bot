@@ -1,4 +1,4 @@
-(** the terminal user interface for the user of our bot. Most of this
+(** The terminal user interface for the user of our bot. Most of this
     file is left intentionally empty, as user only ever interacts with
     [main ()]*)
 

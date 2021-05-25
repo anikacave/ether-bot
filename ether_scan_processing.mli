@@ -1,3 +1,6 @@
+(** Processess the queries to EtherScan API, and formats them
+    appropriately for computation and storing in CSV*)
+
 (** exception *)
 exception Invalid_date of string
 

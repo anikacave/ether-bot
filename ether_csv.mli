@@ -17,7 +17,7 @@ type price = float
 (** Exception thrown when searching for a price at time*)
 exception TimestampNotFound
 
-(* Exception when an invalid csv file is thrown *)
+(** Exception when an invalid csv file is thrown *)
 exception InvalidCSVFile
 
 (** Exception thrown when a file has an invalid extension/format ex) a
@@ -40,14 +40,14 @@ val from_csv : float -> filename -> string
     file extension is illegal*)
 val safe_update_csv : filename -> readable_format -> filename
 
-(* Finds the highest price in the past 24 hours. Searches through the
-   CSV data. If data from the past 24 hours is not included in the csv
-   file, throws the TimestampNotFound exception. Throws invalid CSV file
-   if the CSV is not readable *)
+(** [high_today fname] Finds the highest price in the past 24 hours.
+    Searches through the CSV data from [fname]. If data from the past 24
+    hours is not included in the csv file, throws the TimestampNotFound
+    exception. Throws invalidCSVfile if the CSV is not readable *)
 val high_today : filename -> timestamp * price
 
-(* Finds the lowest price in the past 24 hours. Searches through the CSV
-   data. If data from the past 24 hours is not included in the csv file,
-   throws the TimestampNotFound exception. Throws invalid CSV file if
-   the CSV is not readabl *)
+(** [low_today fname] Finds the lowest price in the past 24 hours.
+    Searches through the CSV data from [fname]. If data from the past 24
+    hours is not included in the csv file, throws the TimestampNotFound
+    exception. Throws invalidCSVfile if the CSV is not readable *)
 val low_today : filename -> timestamp * price

@@ -38,6 +38,8 @@ and print_info_cmds () =
   print_fmt "[4] New crypto news\n";
   print_fmt "[5] How do I invest and keep my crypto safe?\n";
   print_fmt
+    "[home]                                     : Return to main screen\n";
+  print_fmt
     "[help]                                     : Displays these \
      commands again \n"
 

@@ -2,9 +2,6 @@ open Indicators
 
 exception Bad_command of string
 
-(** [epoched_reversed_list lst multiplier] creates a string in the rigth
-    order out of [lst] and multiplies its integer equivalent by
-    [multiplier]*)
 let epoched_reversed_list lst multiplier =
   try
     let rev_tl = List.rev lst in
@@ -19,8 +16,6 @@ let epoched_reversed_list lst multiplier =
       (Bad_command
          "time must be integer followed by \"h\", \"d\", or \"w\"\n")
 
-(** [convert_str_to_epoch_time str] reads in a string of type "XXh",
-    "XXd", or "XXw" and converts it to seconds for the indicators' usage*)
 let convert_str_to_epoch_time str =
   (* [seq_to_list sequ] converts sequence [sequ] to a list and reverses
      order*)
@@ -76,22 +71,15 @@ let parsing_fcn1 str =
           let epochjan12021 = 1609477200 in
           Some (epochjan12021 + epoch, price)
 
-(** [print_show_wealth erase_screen] Displays the user's Ether wealth.
-    The parameters are printed from the CSV. All calculations are done
-    in [recieve_wealth_commands]*)
 let rec print_show_analyze erase_screen =
   if erase_screen then (
     ANSITerminal.(erase Screen);
     ANSITerminal.set_cursor 1 1 )
   else ();
   print_fmt "Analysis Module\n";
-  print_fmt
-  "The file 'ETH_1min_sample.csv' is loaded by default. \n";
+  print_fmt "The file 'ETH_1min_sample.csv' is loaded by default. \n"
 
-(** [print_analyze_cmds d] displays the commands in the Wealth screen to
-    the user. The d argument is used to keep track of the dataset in
-    question *)
-and print_analyze_cmds d =
+and print_analyze_cmds () =
   (* doesn't have a clear screen param b/c is always called after "help"
      or after showing the wealth *)
   print_fmt "COMMANDS\n";
@@ -101,11 +89,9 @@ and print_analyze_cmds d =
   print_fmt
     "XXh or XXd or XXw, where XX is an integer and h, d, and w signify \
      hours, days, and weeks\n";
+  print_fmt "Best Data from <time> set to 19w ! \n";
   print_fmt
     "[home]                                     : Return to home\n";
-  print_fmt
-    "[open <file>]                              : Open <file> to \
-     analyze \n";
   print_fmt
     "[sma <period> <num_periods> <time>]        : Displays the simple \
      mean average\n";
@@ -125,8 +111,8 @@ and print_analyze_cmds d =
      stochastic oscillator, \n";
   print_fmt
     "                                             looking back \
-     <lookback> seconds from <time>. <time> is how long ago from this \
-     moment you would like to begin calculating stoch.\n";
+     <lookback> from <time>. <time> is how long ago from this moment \
+     you would like to begin calculating stoch.\n";
   print_fmt
     "[adx <period> <time>]                      : Displays the average \
      directional index, \n";
@@ -143,7 +129,8 @@ and print_analyze_cmds d =
      would like to begin calculating adx.\n";
   print_fmt
     "[poi <delay> <period> <change>]            : Displays a list of \
-     data points whose price changes by <change> after <delay> seconds, sampled every <period>. \n";
+     data points whose price changes by <change> after <delay>, \
+     sampled every <period>. \n";
   print_fmt
     "                                             whose change from \
      previous data point is greater than <change>\n";
@@ -152,9 +139,6 @@ and print_analyze_cmds d =
     "[help]                                     : Displays these \
      commands again \n"
 
-(** [recieve_analyze_cmds un] is a REPL that reads user's commands
-    (specified in [print_analyze_cmds]) and redirects user to function
-    that carries out that command*)
 and recieve_analyze_cmds d =
   let d = from_csv parsing_fcn1 "ETH_1min_sample.csv" in
   print_string "> ";
@@ -167,10 +151,6 @@ and recieve_analyze_cmds d =
   | [ "0" ] | [ "home" ] | [ "q" ] | [ "Q" ] | [ "quit" ] | [ "Quit" ]
     ->
       ()
-  | [ "open"; filename ] ->
-      let new_data = from_csv parsing_fcn1 filename in
-      print_endline @@ "Loaded: " ^ filename;
-      recieve_analyze_cmds new_data
   | [ "sma"; period; num_periods; time ] -> (
       try
         let avg =
