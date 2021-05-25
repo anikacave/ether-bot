@@ -24,7 +24,7 @@ let rec print_show_info erase_screen =
     ANSITerminal.(erase Screen);
     ANSITerminal.set_cursor 1 1)
   else ();
-  print_fmt "Analysis Module\n"
+  print_fmt "Info Module\n"
 
 and print_info_cmds () =
   print_fmt "ASK ME...\n";
@@ -48,13 +48,13 @@ and recieve_info_cmds () =
       ()
   | [ "1" ] ->
       what_is_crypto ();
-      print_info_cmds ()
+      recieve_info_cmds ()
   | [ "2" ] ->
       elon_tweets ();
-      print_info_cmds ()
+      recieve_info_cmds ()
   | [ "3" ] ->
       messari_graph ();
-      print_info_cmds ()
+      recieve_info_cmds ()
   | [ "4" ] ->
       crypto_news_yahoo ();
       print_info_cmds ()
