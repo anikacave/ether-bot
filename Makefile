@@ -1,4 +1,4 @@
-MODULES=ether_csv ether_scan_processing ether_scan_query main csv_writer wealth
+MODULES=ether_csv ether_scan_processing ether_scan_query main csv_writer wealth analyze ascii_graph get_info
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)

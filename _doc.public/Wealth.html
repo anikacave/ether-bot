@@ -1,0 +1,187 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Csv_writer.html">
+<link rel="next" href="Analyze.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Ether_csv" rel="Chapter" href="Ether_csv.html">
+<link title="Ether_scan_processing" rel="Chapter" href="Ether_scan_processing.html">
+<link title="Ether_scan_query" rel="Chapter" href="Ether_scan_query.html">
+<link title="Main" rel="Chapter" href="Main.html">
+<link title="Csv_writer" rel="Chapter" href="Csv_writer.html">
+<link title="Wealth" rel="Chapter" href="Wealth.html">
+<link title="Analyze" rel="Chapter" href="Analyze.html">
+<link title="Ascii_graph" rel="Chapter" href="Ascii_graph.html">
+<link title="Get_info" rel="Chapter" href="Get_info.html"><title>Wealth</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Csv_writer.html" title="Csv_writer">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Analyze.html" title="Analyze">Next</a>
+</div>
+<h1>Module <a href="type_Wealth.html">Wealth</a></h1>
+
+<pre><span id="MODULEWealth"><span class="keyword">module</span> Wealth</span>: <code class="code">sig</code> <a href="Wealth.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>The type filename</p>
+</div>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEfilename"><span class="keyword">type</span> <code class="type"></code>filename</span> = <code class="type">string</code> </pre>
+
+
+<pre><span id="TYPEamount_ether"><span class="keyword">type</span> <code class="type"></code>amount_ether</span> = <code class="type">float</code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>An amount of Ether</p>
+</div>
+</div>
+
+
+<pre><span id="TYPEprice"><span class="keyword">type</span> <code class="type"></code>price</span> = <code class="type">float</code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>A current price of Ether</p>
+</div>
+</div>
+
+
+<pre><span id="TYPEworth"><span class="keyword">type</span> <code class="type"></code>worth</span> = <code class="type">float</code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>The worth of a given <code class="code">amount_ether</code> based on the current <code class="code">price</code></p>
+</div>
+</div>
+
+
+<pre><span id="TYPEspent"><span class="keyword">type</span> <code class="type"></code>spent</span> = <code class="type">float</code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>How much the user has spent based on the historical <code class="code">price</code> of their
+    individual Ether purchases (is affected only by buys, not sells)</p>
+</div>
+</div>
+
+<p>How much the user has made by selling previously purchased Ether. As
+    usual, Net Profit = Revenue - Cost (Spent)</p>
+
+<pre><span id="TYPErevenue"><span class="keyword">type</span> <code class="type"></code>revenue</span> = <code class="type">float</code> </pre>
+
+
+<pre><span id="EXCEPTIONInvalidEtherAmount"><span class="keyword">exception</span> InvalidEtherAmount</span> <span class="keyword">of</span> <code class="type">string</code></pre>
+<div class="info ">
+<div class="info-desc">
+<p>When Ether specified is greater than 99.99, or 0</p>
+</div>
+</div>
+
+<pre><span id="EXCEPTIONInsufficientEtherInOwn"><span class="keyword">exception</span> InsufficientEtherInOwn</span> <span class="keyword">of</span> <code class="type">string</code></pre>
+<div class="info ">
+<div class="info-desc">
+<p>When user tries to sell more Ether than they posess</p>
+</div>
+</div>
+
+<pre><span id="VALrestart_wealth"><span class="keyword">val</span> restart_wealth</span> : <code class="type">unit -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">restart_wealth un</code> clears the CSV log and references, so user can
+    start from clean slate</p>
+</div>
+</div>
+
+<pre><span id="VALinitialize_wealth"><span class="keyword">val</span> initialize_wealth</span> : <code class="type">unit -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">initialize_wealth un</code> creates the csv log if it does not exist and
+    updates the value refs</p>
+</div>
+</div>
+
+<pre><span id="VALether_own"><span class="keyword">val</span> ether_own</span> : <code class="type">unit -> <a href="Wealth.html#TYPEamount_ether">amount_ether</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">ether_own ()</code> gives the current amount of Ether, which is between 0
+    and 99.99, owned by the user</p>
+</div>
+</div>
+
+<pre><span id="VALether_spent"><span class="keyword">val</span> ether_spent</span> : <code class="type">unit -> <a href="Wealth.html#TYPEspent">spent</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">ether_spent ()</code> gives the current money spent on Ether owned by the
+    user, based on historical <code class="code">prices</code> of individual Ether in store</p>
+</div>
+</div>
+
+<pre><span id="VALether_worth"><span class="keyword">val</span> ether_worth</span> : <code class="type"><a href="Wealth.html#TYPEprice">price</a> -> <a href="Wealth.html#TYPEworth">worth</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">ether_worth cur_price</code> is the worth of <code class="code">ether_own ()</code>, which is the
+    amount of ether in stores times the current_price</p>
+</div>
+</div>
+
+<pre><span id="VALether_liquid_rev"><span class="keyword">val</span> ether_liquid_rev</span> : <code class="type">unit -> <a href="Wealth.html#TYPErevenue">revenue</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">ether_liquid_rev ()</code> gives the net revenue made from seling
+    previously purchased Ether, based on historical prices of individual
+    Ether + when they were sold</p>
+</div>
+</div>
+
+<pre><span id="VALwealth_bought"><span class="keyword">val</span> wealth_bought</span> : <code class="type"><a href="Wealth.html#TYPEamount_ether">amount_ether</a> -><br>       <a href="Wealth.html#TYPEprice">price</a> -><br>       <a href="Wealth.html#TYPEamount_ether">amount_ether</a> * <a href="Wealth.html#TYPEworth">worth</a> * <a href="Wealth.html#TYPEspent">spent</a> * <a href="Wealth.html#TYPErevenue">revenue</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">wealth_bought amt cur_price</code> returns the updated values of <code class="code">own</code>,
+    <code class="code">worth</code>, <code class="code">spent</code> and <code class="code">liquid_rev</code> SIDE EFFECT: updates the log file
+    <code class="code">ether_wealth.csv</code></p>
+</div>
+</div>
+
+<pre><span id="VALwealth_sold"><span class="keyword">val</span> wealth_sold</span> : <code class="type"><a href="Wealth.html#TYPEamount_ether">amount_ether</a> -><br>       <a href="Wealth.html#TYPEprice">price</a> -><br>       <a href="Wealth.html#TYPEamount_ether">amount_ether</a> * <a href="Wealth.html#TYPEworth">worth</a> * <a href="Wealth.html#TYPEspent">spent</a> * <a href="Wealth.html#TYPErevenue">revenue</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">wealth_sold amt cur_price</code> returns the updated values of <code class="code">own</code>,
+    <code class="code">worth</code>, <code class="code">spent</code> and <code class="code">liquid_rev</code> SIDE EFFECT: updates the log file
+    <code class="code">ether_wealth.csv</code></p>
+</div>
+</div>
+
+<pre><span id="VALether_own_add"><span class="keyword">val</span> ether_own_add</span> : <code class="type"><a href="Wealth.html#TYPEamount_ether">amount_ether</a> -> <a href="Wealth.html#TYPEamount_ether">amount_ether</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">ether_own_add amt_ether</code> updates the log file to reflect recent
+    Ether purchase, and returns the new amount of ether owned</p>
+</div>
+</div>
+
+<pre><span id="VALether_own_sub"><span class="keyword">val</span> ether_own_sub</span> : <code class="type"><a href="Wealth.html#TYPEamount_ether">amount_ether</a> -> <a href="Wealth.html#TYPEamount_ether">amount_ether</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">ether_own_sub amt_ether</code> updates the log file to reflect recent
+    Ether sell, and returns the new amount of ether owned</p>
+</div>
+</div>
+
+<pre><span id="VALether_spent_add"><span class="keyword">val</span> ether_spent_add</span> : <code class="type"><a href="Wealth.html#TYPEamount_ether">amount_ether</a> -> <a href="Wealth.html#TYPEprice">price</a> -> <a href="Wealth.html#TYPEspent">spent</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">ether_spent_add amt_ether cur_price</code> updates the log file to
+    reflect recent Ether purchases. Updates the spent of ether in log,
+    and returns the new value</p>
+</div>
+</div>
+
+<pre><span id="VALether_spent_sub"><span class="keyword">val</span> ether_spent_sub</span> : <code class="type"><a href="Wealth.html#TYPEamount_ether">amount_ether</a> -> <a href="Wealth.html#TYPEprice">price</a> -> <a href="Wealth.html#TYPEspent">spent</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>NOTE: new decision, should not be subtracting spent. Instead add a
+    new variable, liquid_rev, that increases each time you make a sale
+    <code class="code">ether_spent_sub amt_ether cur_price</code> updates the log file to
+    reflect recent Ether sells. Updates the spent of ether in log, and
+    returns the new value</p>
+</div>
+</div>
+<p><code class="code">ether_liquid_rev_add amt_ether</code> updates the log file's liquid_rev
+    to reflect a recent sale of ether, and returns the new value</p>
+
+<pre><span id="VALether_liquid_rev_add"><span class="keyword">val</span> ether_liquid_rev_add</span> : <code class="type"><a href="Wealth.html#TYPEamount_ether">amount_ether</a> -> <a href="Wealth.html#TYPEprice">price</a> -> <a href="Wealth.html#TYPErevenue">revenue</a></code></pre></body></html>

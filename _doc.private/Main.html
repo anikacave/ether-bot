@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Ether_scan_query.html">
+<link rel="next" href="Csv_writer.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Ether_csv" rel="Chapter" href="Ether_csv.html">
+<link title="Ether_scan_processing" rel="Chapter" href="Ether_scan_processing.html">
+<link title="Ether_scan_query" rel="Chapter" href="Ether_scan_query.html">
+<link title="Main" rel="Chapter" href="Main.html">
+<link title="Csv_writer" rel="Chapter" href="Csv_writer.html">
+<link title="Wealth" rel="Chapter" href="Wealth.html">
+<link title="Analyze" rel="Chapter" href="Analyze.html">
+<link title="Ascii_graph" rel="Chapter" href="Ascii_graph.html">
+<link title="Get_info" rel="Chapter" href="Get_info.html"><title>Main</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Ether_scan_query.html" title="Ether_scan_query">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Csv_writer.html" title="Csv_writer">Next</a>
+</div>
+<h1>Module <a href="type_Main.html">Main</a></h1>
+
+<pre><span id="MODULEMain"><span class="keyword">module</span> Main</span>: <code class="code">sig</code> <a href="Main.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>the terminal user interface for the user of our bot. Most of this
+    file is left intentionally empty, as user only ever interacts with
+    <code class="code">main ()</code></p>
+</div>
+</div>
+<hr width="100%">
+
+<pre><span id="EXCEPTIONFile_not_found"><span class="keyword">exception</span> File_not_found</span></pre>
+
+<pre><span id="EXCEPTIONMalformed_date"><span class="keyword">exception</span> Malformed_date</span> <span class="keyword">of</span> <code class="type">string</code></pre>
+<div class="info ">
+<div class="info-desc">
+<p>An exception when the user's input date is not of the form
+    &lt;mm/dd/yyyy&gt;</p>
+</div>
+</div>
+
+<pre><span id="VALreadable_pid"><span class="keyword">val</span> readable_pid</span> : <code class="type">int Stdlib.ref</code></pre>
+<pre><span id="VALunreadable_pid"><span class="keyword">val</span> unreadable_pid</span> : <code class="type">int Stdlib.ref</code></pre>
+<pre><span id="VALfilename"><span class="keyword">val</span> filename</span> : <code class="type">string</code></pre>
+<pre><span id="VALbot_filename"><span class="keyword">val</span> bot_filename</span> : <code class="type">string</code></pre>
+<pre><span id="VALcheck_date"><span class="keyword">val</span> check_date</span> : <code class="type">string -> string</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">check_date mm_dd_yyyy</code> checks the date is valid, date input as
+    &lt;mm/dd/yyyy&gt;. As in, not before 1900 and not after 2021, valid
+    month, valid date, etc</p>
+</div>
+</div>
+
+<pre><span id="VALinit_price"><span class="keyword">val</span> init_price</span> : <code class="type">float</code></pre>
+<pre><span id="VALflt_how_much_would_have_made"><span class="keyword">val</span> flt_how_much_would_have_made</span> : <code class="type">unit -> float</code></pre>
+<pre><span id="VALstr_how_much_would_have_made"><span class="keyword">val</span> str_how_much_would_have_made</span> : <code class="type">unit -> string</code></pre>
+<pre><span id="VALprint_fmt"><span class="keyword">val</span> print_fmt</span> : <code class="type">string -> unit</code></pre>
+<pre><span id="VALprint_cmds"><span class="keyword">val</span> print_cmds</span> : <code class="type">bool -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">print_cmds ()</code> prints the possible commands</p>
+</div>
+</div>
+
+<pre><span id="VALopen_data_csv"><span class="keyword">val</span> open_data_csv</span> : <code class="type">string -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">open_data_csv</code> opens <code class="code">ether_data.csv</code> in terminal if it exists,
+    else it prints \"Can not present data\""</p>
+</div>
+</div>
+
+<pre><span id="VALquit_prog"><span class="keyword">val</span> quit_prog</span> : <code class="type">'a -> unit</code></pre>
+<pre><span id="VALrecieve_cmds"><span class="keyword">val</span> recieve_cmds</span> : <code class="type">unit -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">recieve_cmds ()</code> is a REPL that reroutes the user to another
+    method, and quits upon "q"</p>
+</div>
+</div>
+
+<pre><span id="VALyn_start"><span class="keyword">val</span> yn_start</span> : <code class="type">unit -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">yn_start ()</code> prompts user if they mean to enter the bot, calls
+    <code class="code">prompt_cmds ()</code> if "Y" and quits if "N". Repeats until desired
+    input achieved</p>
+</div>
+</div>
+
+<pre><span id="VALmain"><span class="keyword">val</span> main</span> : <code class="type">unit -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">main ()</code> calls <code class="code">yn_start ()</code> and begins execution</p>
+
+<p>The REPL for the Ether Bot interface</p>
+</div>
+</div>
+</body></html>

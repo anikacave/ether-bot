@@ -1,3 +1,6 @@
+(** Module: makes queries to retrieve information regarding current and
+    historical prices of Ether *)
+
 (** [get_cur_price ()] is the pair (a, b) where a is the string
     describing the current Ethereum price in USD, and b is the string of
     an integer representing the Epoch timestamp of the last price.

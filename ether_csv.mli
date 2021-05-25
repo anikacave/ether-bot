@@ -1,12 +1,17 @@
+(** Module for writing values in proper format to csv file as well as
+    searching through data and parsing for specific information *)
+
 (** The type filename *)
 type filename = string
 
-(* Format of the csv file, true if user-friendly and false if
-   bot-friendly *)
+(** Format of the csv file, true if user-friendly and false if
+    bot-friendly *)
 type readable_format = bool
 
+(** The timestamp that is being searched for in non-readible format *)
 type timestamp = float
 
+(** The price as a float *)
 type price = float
 
 (** Exception thrown when searching for a price at time*)
