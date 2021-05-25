@@ -37,7 +37,7 @@ let rec avg_cut_list (l : float list) (size : int) =
   if List.length l > size then avg_cut_list (avg_cut l []) size else l
 
 let heights (l : float list) =
-  let vals = avg_cut_list l 200 in
+  let vals = avg_cut_list l 100 in
   List.map
     (fun (e : float) ->
       (e -. 2000.) /. 100. |> Float.floor |> int_of_float)

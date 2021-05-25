@@ -17,12 +17,16 @@ let messari_graph () = open_url "https://messari.io/asset/ethereum"
 let crypto_news_yahoo () =
   open_url "https://finance.yahoo.com/topic/crypto/"
 
+let crypto_safety () =
+  open_url
+    "http://sebfor.com/how-to-buy-and-store-ethereum-securely-13/#:~:text=Paper%20wallet%20is%20the%20most,them%20securely%20in%20different%20locations."
+
 let print_fmt str = ANSITerminal.(print_string [ magenta ] str)
 
 let rec print_show_info erase_screen =
   if erase_screen then (
     ANSITerminal.(erase Screen);
-    ANSITerminal.set_cursor 1 1 )
+    ANSITerminal.set_cursor 1 1)
   else ();
   print_fmt "Info Module\n"
 
@@ -32,6 +36,7 @@ and print_info_cmds () =
   print_fmt "[2] What is Elon up to today?\n";
   print_fmt "[3] View Ether live graph\n";
   print_fmt "[4] New crypto news\n";
+  print_fmt "[5] How do I invest and keep my crypto safe?\n";
   print_fmt
     "[help]                                     : Displays these \
      commands again \n"
@@ -58,6 +63,9 @@ and recieve_info_cmds () =
       recieve_info_cmds ()
   | [ "4" ] ->
       crypto_news_yahoo ();
+      print_info_cmds ()
+  | [ "5" ] ->
+      crypto_safety ();
       print_info_cmds ()
   | [ "help" ] | [ "Help" ] ->
       print_info_cmds ();
