@@ -227,27 +227,40 @@ let sma_tests =
        743.05;*)
   ]
 
-let ema_test name data period num time expected : test =
+(* let ema_test name data period num time expected : test = name >:: fun
+   _ -> assert_equal expected (ema data period num time 2.)
+   ~printer:string_of_float
+
+   let ema_tests = [ ema_test "ema from 0 to 0" data 0 0 0 0.; ema_test
+   "ema from start to start" data 60 0 1609459260 0.; ema_test "ema from
+   start to one minute later 1 period of 1 minute" data 60 1 1609459320
+   0.; ema_test "ema from start to one minute later 2 periods of 1
+   minute" data 120 1 1609459320 0.; ema_test "ema from start to two
+   minutes later 2 periods of 1 minute" data 60 2 1609459380 743.77;
+   ema_test "ema from start to two minutes later 3 periods of 1 minute"
+   data 120 1 1609459380 743.77; ema_test "ema from start to ten minutes
+   later 20 periods of 1 minute" data 60 10 1609459860 741.93; ] *)
+
+let stoch_test name data lookback time expected : test =
   name >:: fun _ ->
-  assert_equal expected
-    (ema data period num time 2.)
+  assert_equal (round expected)
+    (round (stoch data lookback time))
     ~printer:string_of_float
 
-let ema_tests =
+let stoch_tests =
   [
-    ema_test "ema from 0 to 0" data 0 0 0 0.;
-    ema_test "ema from start to start" data 60 0 1609459260 0.;
-    ema_test "ema from start to one minute later 1 period of 1 minute"
-      data 60 1 1609459320 0.;
-    ema_test "ema from start to one minute later 2 periods of 1 minute"
-      data 120 1 1609459320 0.;
-    ema_test "ema from start to two minutes later 2 periods of 1 minute"
-      data 60 2 1609459380 743.77;
-    ema_test "ema from start to two minutes later 3 periods of 1 minute"
-      data 120 1 1609459380 743.77;
-    ema_test
-      "ema from start to ten minutes later 20 periods of 1 minute" data
-      60 10 1609459860 741.93;
+    stoch_test "stoch from 0 to 0" data 0 0 0.;
+    stoch_test "stoch from start to start" data 0 1609459260 0.;
+    stoch_test "stoch from start to one minute later 1 lookback" data 60
+      1609459320 0.;
+    stoch_test "stoch from start to two minutes later 1 lookback" data
+      120 1609459380 0.;
+    stoch_test "stoch from start to three minutes later 1 lookback" data
+      180 1609459440 0.;
+    stoch_test "stoch from start to ten minutes later 1 lookback" data
+      600 1609459860 2.22929936306;
+    stoch_test "stoch from start to twenty minutes later 1 lookback"
+      data 1200 1609460460 62.4203821656;
   ]
 
 let indicator_tests =
@@ -259,7 +272,7 @@ let indicator_tests =
       low_tests;
       mean_tests;
       sma_tests;
-      ema_tests;
+      stoch_tests;
     ]
 
 let suite =
