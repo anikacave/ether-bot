@@ -221,36 +221,36 @@ let sma_tests =
       data 60 2 1609459380 743.77;
     sma_test "sma from start to two minutes later 3 periods of 1 minute"
       data 120 1 1609459380 743.77;
-    (* sma_test "sma from start to three minutes later 2 periods of 1
-       minute" data 60 3 1609459440 743.05; sma_test "sma from start to
-       three minutes later 3 periods of 1 minute" data 120 2 1609459440
-       743.05;*)
+    sma_test
+      "sma from start to three minutes later 2 periods of 1\n\
+      \       minute" data 60 3 1609459440 742.33;
+    sma_test
+      "sma from start to\n\
+      \       three minutes later 3 periods of 1 minute" data 120 2
+      1609459440 742.33;
   ]
 
 let ema_test name data period num time expected : test =
   name >:: fun _ ->
-  assert_equal expected
-    (ema data period num time ~smoothing:2.)
+  assert_equal (round expected)
+    (round (ema data period num time ~smoothing:2.))
     ~printer:string_of_float
 
 let ema_tests =
   [
     ema_test "ema from 0 to 0" data 0 0 0 0.;
     ema_test "ema from start to start" data 60 0 1609459260 0.;
-    ema_test
-      "ema from\n   start to one minute later 1 period of 1 minute" data
-      60 1 1609459320 0.;
-    ema_test
-      "ema from start to one minute later 2 periods of 1\n   minute"
-      data 120 1 1609459320 0.;
-    ema_test
-      "ema from start to two\n   minutes later 2 periods of 1 minute"
-      data 60 2 1609459380 743.77;
+    ema_test "ema from start to one minute later 1 period of 1 minute"
+      data 60 1 1609459320 743.77;
+    ema_test "ema from start to one minute later 2 periods of 1 minute"
+      data 120 1 1609459320 743.77;
+    ema_test "ema from start to two minutes later 2 periods of 1 minute"
+      data 60 2 1609459380 742.81;
     ema_test "ema from start to two minutes later 3 periods of 1 minute"
-      data 120 1 1609459380 743.77;
+      data 120 1 1609459380 743.05;
     ema_test
-      "ema from start to ten minutes\n   later 20 periods of 1 minute"
-      data 60 10 1609459860 741.93;
+      "ema from start to ten minutes later 20 periods of 1 minute" data
+      60 10 1609459860 741.519581818;
   ]
 
 let stoch_test name data lookback time expected : test =
@@ -284,6 +284,7 @@ let indicator_tests =
       low_tests;
       mean_tests;
       sma_tests;
+      ema_tests;
       stoch_tests;
     ]
 
